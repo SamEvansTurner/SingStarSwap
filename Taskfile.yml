@@ -3,8 +3,11 @@ version: "3"
 tasks:
     run: 
         desc: Run the app
+        dir: 'server' 
         cmds:
-        - GOFLAGS=-mod=mod go run main.go
+          - task: clean
+          - task: build-webapp
+          - GOFLAGS=-mod=mod go run main.go
 
     build-go:
         internal: true
@@ -15,20 +18,21 @@ tasks:
     build-webapp:
         dir: 'webapp'
         cmds:
-            - ng build
+          - ng build
 
     build:
         desc: Build the app
-        tasks:
-        - clean
-        - build-webapp
-        - build-go
+        cmds:
+          - task: clean
+          - task: build-webapp
+          - task: build-go
 
     clean:
         desc: Clean the distribution dirs
         cmds:
         - rm -rf server/static/*
-        - rm -rf dist 
+        - rm -rf dist
+        - rm -rf bin
 
     # generate:
     #     desc: Generate image to ascii files

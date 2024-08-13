@@ -2,3 +2,4 @@
 Dockerfile
 server/static/
 dist/
+bin/
