@@ -1,0 +1,4 @@
+.DS_Store
+Dockerfile
+server/static/
+dist/

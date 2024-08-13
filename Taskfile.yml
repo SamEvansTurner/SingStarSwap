@@ -1,0 +1,36 @@
+version: "3"
+    
+tasks:
+    run: 
+        desc: Run the app
+        cmds:
+        - GOFLAGS=-mod=mod go run main.go
+
+    build-go:
+        internal: true
+        dir: 'server' 
+        cmds:
+            - GOFLAGS=-mod=mod go build -o ../bin/SingStarSwap main.go
+
+    build-webapp:
+        dir: 'webapp'
+        cmds:
+            - ng build
+
+    build:
+        desc: Build the app
+        tasks:
+        - clean
+        - build-webapp
+        - build-go
+
+    clean:
+        desc: Clean the distribution dirs
+        cmds:
+        - rm -rf server/static/*
+        - rm -rf dist 
+
+    # generate:
+    #     desc: Generate image to ascii files
+    #     cmds:
+    #     - TODO
