@@ -14,6 +14,7 @@
           "builder": "@angular-devkit/build-angular:browser-esbuild",
           "options": {
             "outputPath": "../server/static",
+            "optimization": false,
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": [
@@ -24,7 +25,8 @@
               {
                 "glob": "**/*",
                 "input": "public"
-              }
+              },
+              "src/favicon.ico", "src/assets"
             ],
             "styles": [
               "src/styles.css"
@@ -37,7 +39,7 @@
                 {
                   "type": "initial",
                   "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumError": "10MB"
                 },
                 {
                   "type": "anyComponentStyle",

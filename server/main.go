@@ -17,9 +17,12 @@ type ServerConfig struct {
 }
 
 type PS3Config struct {
-	Address string `json:"address"`
-	PS2Path string `json:"ps2path"`
-	PS3Path string `json:"ps3path"`
+	Address         string `json:"address"`
+	PS2Path         string `json:"ps2path"`
+	PS2ISOPath      string `json:"ps2isopath"`
+	PS2FolderFilter string `json:"ps2folderfilter"`
+	PS3Path         string `json:"ps3path"`
+	PS3IsoFilter    string `json:"ps3isofilter"`
 }
 
 type Config struct {
@@ -29,7 +32,7 @@ type Config struct {
 
 // In essence this is a const setting for defaults, but Go doesn't work that way for structs afaict
 func GetDefaultSettings() *Config {
-	return &Config{ServerConfig{"4000"}, PS3Config{"192.168.1.2", "/dev_hdd0/SINGSTAR", "/net0/PS3ISO"}}
+	return &Config{ServerConfig{"4000"}, PS3Config{"192.168.1.2", "/dev_hdd0/SINGSTAR", "/dev_hdd0/PS2ISO/SingStar+'80s+(Europe,+Australia)+(v2.00).iso", "SingStar", "/net0/PS3ISO", "SingStar"}}
 }
 
 // Embed the static generated Angular from the previous build step.
@@ -40,17 +43,24 @@ var embedWebApp embed.FS
 // Set-up global config to be passed to web-app
 var settings *Config
 
+func GetConfigFilePath() (string, error) {
+	configPath := configdir.LocalConfig("SingStarSwap")
+	err := configdir.MakePath(configPath)
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(configPath, "settings.json"), nil
+}
+
 // Reads config from disk, and then saves it or re-saves it update defaults.
 func ReadConfig() (*Config, error) {
 
 	_settings := GetDefaultSettings()
 
-	configPath := configdir.LocalConfig("SingStarSwap")
-	err := configdir.MakePath(configPath)
+	configFile, err := GetConfigFilePath()
 	if err != nil {
 		return nil, err
 	}
-	configFile := filepath.Join(configPath, "settings.json")
 
 	if _, err = os.Stat(configFile); !os.IsNotExist(err) {
 
@@ -100,7 +110,10 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Print(settings)
+	fmt.Println("Welcome to SingStarSwap")
+	configFilePath, _ := GetConfigFilePath()
+	fmt.Println("Config can be found at " + configFilePath)
+	fmt.Println("You can find the web GUI at http://localhost:" + settings.Port)
 
 	fsys, err := fs.Sub(embedWebApp, "static")
 
@@ -112,5 +125,8 @@ func main() {
 	http.Handle("/", fileserver)
 	http.Handle("/settings.json", http.HandlerFunc(returnConfig))
 
-	http.ListenAndServe(":4000", nil)
+	err = http.ListenAndServe(":"+settings.Port, nil)
+	if err != nil {
+		panic(err)
+	}
 }
