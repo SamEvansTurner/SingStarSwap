@@ -6,10 +6,11 @@ import { ConfigService } from './config.service';
   providedIn: 'root'
 })
 export class PS2DataService {
-  private apiUrl = "";
+  public apiUrl = "";
   private dataSubject = new BehaviorSubject<string | null>(null);
   private data$ = this.dataSubject.asObservable();
   public folderFilter = "";
+  public ps2MountURL = "";
 
   constructor(private http: HttpClient, private configService: ConfigService) { 
     configService.config$.subscribe(
@@ -17,6 +18,7 @@ export class PS2DataService {
         if (data) {
           this.apiUrl = "http://" + data?.address + "" + data?.ps2path;
           this.folderFilter = data?.ps2folderfilter;
+          this.ps2MountURL = "http://" + data?.address + "/mount_ps2/"
           this.http.get(this.apiUrl, {responseType: 'text'}).subscribe(
             { 
               next: (response) => {
