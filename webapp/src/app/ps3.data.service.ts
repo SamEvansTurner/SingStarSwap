@@ -6,5 +6,7 @@ import { ConfigService } from './config.service';
 })
 export class Ps3DataService {
 
+  private gameDataXML = "http://${url}/dev_hdd0/xmlhost/game_plugin/mygames.xml";
+
   constructor() { }
 }
