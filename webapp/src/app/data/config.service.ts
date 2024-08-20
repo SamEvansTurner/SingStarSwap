@@ -1,7 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { OnInit } from '@angular/core';
-import { of, tap, BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, filter, Observable } from 'rxjs';
 import { Config } from './config-data.model';
 import { Location } from '@angular/common';
 
@@ -11,7 +10,7 @@ import { Location } from '@angular/common';
 export class ConfigService {
 
   private configSubject = new BehaviorSubject<Config | null>(null);
-  config$ = this.configSubject.asObservable();
+  config$ = this.configSubject.asObservable().pipe(filter((data): data is Config => data !== null));
 
   constructor(private http: HttpClient, private location: Location) { 
     this.http.get(`${this.location.path(false)}/settings.json`, {responseType: 'json'}).subscribe(
@@ -33,7 +32,7 @@ export class ConfigService {
       )
   }
 
-  get config(): Config | null {
-    return this.configSubject.value;
+  get config(): Observable<Config> {
+    return this.config$
   }
 }

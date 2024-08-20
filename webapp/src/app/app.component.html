@@ -4,6 +4,13 @@
     <img class="brand-logo" src="/assets/logo.svg" alt="logo" aria-hidden="true" />
   </header>
   <section class="content">
-      <app-home></app-home>
+      <mat-tab-group>
+        <mat-tab label="Game Switcher">
+          <app-gamecards></app-gamecards>
+        </mat-tab>
+        <mat-tab label="Song Lookup">
+          <app-songsearch></app-songsearch>
+        </mat-tab>
+      </mat-tab-group>
   </section>
 </main>

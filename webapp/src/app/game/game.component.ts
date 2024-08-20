@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { PS2DataService } from '../ps2.data.service';
+import { PS2DataService } from '../data/ps2.data.service';
 
 
 export interface PS2GameData {
@@ -9,13 +9,13 @@ export interface PS2GameData {
 }
 
 @Component({
-  selector: 'app-home',
+  selector: 'app-gamecards',
   standalone: true,
   imports: [],
-  templateUrl: './home.component.html',
-  styleUrl: './home.component.css'
+  templateUrl: './game.component.html',
+  styleUrl: './game.component.css'
 })
-export class HomeComponent implements OnInit {
+export class GameComponent implements OnInit {
   data: Map<string, PS2GameData>  = new Map<string, PS2GameData>();
   isoMountURL = "";
 

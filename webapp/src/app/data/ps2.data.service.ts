@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, filter, firstValueFrom, Observable, of, tap } from 'rxjs';
 import { ConfigService } from './config.service';
+import { SongsDataService } from './songs.data.service';
 
 @Injectable({
   providedIn: 'root'
@@ -18,8 +19,8 @@ export class PS2DataService {
   public folderFilter = "";
   public ps2MountURL = "";
   
-  constructor(private http: HttpClient, private configService: ConfigService) { 
-    configService.config$.subscribe(
+  constructor(private http: HttpClient, private configService: ConfigService, private songDatabase: SongsDataService) { 
+    configService.config.subscribe(
       data => {
         if (data) {
           this.ps3Address = "http://" + data?.address;
@@ -41,7 +42,6 @@ export class PS2DataService {
           this.ps2GameDataSubject.next(response)
         },
         error: (err) => {
-          //FOR DEBUGGING: just set default values
           console.error("error in ps2dataservice: ", err);
         }
       }
@@ -55,7 +55,6 @@ export class PS2DataService {
           this.processPS2ISOData(response)
         },
         error: (err) => {
-          //FOR DEBUGGING: just set default values
           console.error("error in ps2dataservice: ", err);
         }
       }
@@ -64,7 +63,7 @@ export class PS2DataService {
 
   private processPS2ISOData(response : string | null) {
     if (typeof(response) == 'string') {
-      // For some reason webmanmod has odd extra non-valid xml tags and parses all data with regex. 
+      // For some reason webmanmod has odd extra non-valid xml tags and parses all data with regex.
       // Remove the extra tags and just parse as xml.
       var sanitizedStr = response.replaceAll(new RegExp('<>(.*?)</>', 'g'), '$1')
       var domParser = new DOMParser();
