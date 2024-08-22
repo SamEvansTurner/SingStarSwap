@@ -1,1 +1,17 @@
-<p>songsearch works!</p>
+<!--<div>
+    <mat-drawer-container>
+        <mat-sidenav mode="side" role="region" opened></mat-sidenav>
+        <mat-sidenav-content>
+            @for (item of dataList(); track item) {
+                <div><button (click)="handleClick(item)">{{item}}</button></div>
+            }            
+        </mat-sidenav-content>
+    </mat-drawer-container>
+</div> -->
+@for (item of songData.keys(); track item) {
+    <div><button (click)="handleClick(item)">{{songData.get(item)?.at(0)?.artist}} - {{songData.get(item)?.at(0)?.title}}  
+        @for(title of getTitles(item); track title) {
+            {{discTitle(title.discid)}}
+        }</button></div>
+}     
+<h1>Songsearch Works!</h1>

@@ -1,5 +1,6 @@
-<section>
+         
+<div>
     @for (item of data.keys(); track item) {
         <div><button (click)="handleClick(item)">{{data.get(item)?.name}}</button></div>
-    }
-</section>
+    }   
+</div>
