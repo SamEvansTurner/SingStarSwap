@@ -13,7 +13,7 @@ tasks:
         internal: true
         dir: 'server' 
         cmds:
-            - GOFLAGS=-mod=mod go build -o ../bin/SingStarSwap main.go
+            - GOFLAGS=-mod=mod go build -o ../bin/SingStarSwap.exe main.go
 
     build-webapp:
         dir: 'webapp'

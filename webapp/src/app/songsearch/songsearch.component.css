@@ -1,0 +1,30 @@
+
+.container {
+    display: flex;
+    height: 90dvh;
+}
+
+.navigation-panel {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    left: 0;
+    width: 2%;
+    min-width: 1em;
+    background: #fff;
+    padding: 10px;
+    border: 1px solid #ccc;
+    overflow-y: auto;
+}
+  
+.navigation-panel a {
+    display: block;
+    margin: 5px 0;
+    cursor: pointer;
+}
+  
+.items-list {
+    flex-grow:1;
+    overflow-y: auto;
+    padding: 10px;
+}

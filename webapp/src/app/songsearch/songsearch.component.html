@@ -8,10 +8,37 @@
         </mat-sidenav-content>
     </mat-drawer-container>
 </div> -->
-@for (item of songData.keys(); track item) {
-    <div><button (click)="handleClick(item)">{{songData.get(item)?.at(0)?.artist}} - {{songData.get(item)?.at(0)?.title}}  
-        @for(title of getTitles(item); track title) {
-            {{discTitle(title.discid)}}
-        }</button></div>
-}     
-<h1>Songsearch Works!</h1>
+<div class="container">
+    <div class="navigation-panel">
+        <a (click)="settings()">⚙</a>
+        @for (group of groupedItems; track group) {
+            <a (click)="scrollTo(group.letter)">{{group.letter}}</a>
+        }
+    </div>
+
+    <div class="items-list">
+    @for (group of groupedItems; track group) {
+        <div>
+            <h2 id="{{group.letter}}">{{group.letter}}</h2>
+            @for (item of group.items; track item) {
+                <mat-expansion-panel>
+                    <mat-expansion-panel-header>
+                        @if (sortByArtist) {
+                            <mat-panel-title>{{item.artist}} - {{item.title}}</mat-panel-title>
+                        } @else {
+                            <mat-panel-title>{{item.title}} by {{item.artist}}</mat-panel-title>
+                        }
+                    </mat-expansion-panel-header>
+                    <ng-template matExpansionPanelContent>
+                        @for(discid of getTitles(item.artist+item.title); track discid) {
+                            <div>
+                                {{discTitle(discid)}}
+                            </div>
+                        }
+                    </ng-template>
+                </mat-expansion-panel>
+            }
+        </div>
+    }
+    </div>
+</div>
