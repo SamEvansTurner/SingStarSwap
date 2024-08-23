@@ -1,44 +1,41 @@
-<!--<div>
-    <mat-drawer-container>
-        <mat-sidenav mode="side" role="region" opened></mat-sidenav>
-        <mat-sidenav-content>
-            @for (item of dataList(); track item) {
-                <div><button (click)="handleClick(item)">{{item}}</button></div>
-            }            
-        </mat-sidenav-content>
-    </mat-drawer-container>
-</div> -->
-<div class="container">
-    <div class="navigation-panel">
-        <a (click)="settings()">⚙</a>
-        @for (group of groupedItems; track group) {
-            <a (click)="scrollTo(group.letter)">{{group.letter}}</a>
-        }
-    </div>
+<mat-drawer-container>
+    <mat-drawer #settingsdrawer mode="over" role="region">
+        <div> abcd </div>
+    </mat-drawer>
+    <mat-drawer-content>
+        <div class="container">
+            <div class="navigation-panel">
+                <a (click)="settingsdrawer.toggle()">⚙</a>
+                @for (group of groupedItems; track group) {
+                <a (click)="scrollTo(group.letter)">{{group.letter}}</a>
+                }
+            </div>
 
-    <div class="items-list">
-    @for (group of groupedItems; track group) {
-        <div>
-            <h2 id="{{group.letter}}">{{group.letter}}</h2>
-            @for (item of group.items; track item) {
-                <mat-expansion-panel>
-                    <mat-expansion-panel-header>
-                        @if (sortByArtist) {
+            <div class="items-list">
+                @for (group of groupedItems; track group) {
+                <div>
+                    <h2 id="{{group.letter}}">{{group.letter}}</h2>
+                    @for (item of group.items; track item) {
+                    <mat-expansion-panel>
+                        <mat-expansion-panel-header>
+                            @if (sortByArtist) {
                             <mat-panel-title>{{item.artist}} - {{item.title}}</mat-panel-title>
-                        } @else {
+                            } @else {
                             <mat-panel-title>{{item.title}} by {{item.artist}}</mat-panel-title>
-                        }
-                    </mat-expansion-panel-header>
-                    <ng-template matExpansionPanelContent>
-                        @for(discid of getTitles(item.artist+item.title); track discid) {
+                            }
+                        </mat-expansion-panel-header>
+                        <ng-template matExpansionPanelContent>
+                            @for(discid of getTitles(item.artist+item.title); track discid) {
                             <div>
                                 {{discTitle(discid)}}
                             </div>
-                        }
-                    </ng-template>
-                </mat-expansion-panel>
-            }
+                            }
+                        </ng-template>
+                    </mat-expansion-panel>
+                    }
+                </div>
+                }
+            </div>
         </div>
-    }
-    </div>
-</div>
+    </mat-drawer-content>
+</mat-drawer-container>

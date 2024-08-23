@@ -9,10 +9,12 @@
     position: sticky;
     top: 0;
     left: 0;
-    width: 2%;
-    min-width: 1em;
+    width: 1%;
+    min-width: 2em;
     background: #fff;
     padding: 10px;
+    scrollbar-width: 1px;
+    scrollbar-gutter: 1px;
     border: 1px solid #ccc;
     overflow-y: auto;
 }
@@ -21,6 +23,8 @@
     display: block;
     margin: 5px 0;
     cursor: pointer;
+    font-size: large;
+    text-align: center;
 }
   
 .items-list {

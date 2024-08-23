@@ -23,8 +23,9 @@ export interface SongLocations {
 export class SongsearchComponent {
   data : SongsDB = {};
   songData : Map<string, SongLocations> = new Map<string, SongLocations>();
-  countryFilter : Array<string> = ["AU", "EU", "US"];
+  countryFilter : Array<string> = [];//["AU", "EU", "US"];
   private letterSet : Set<string> = new Set<string>();
+  private countrySet : Set<string> = new Set<string>();
   sortByArtist : boolean = true;
   groupedItems : { letter: string, items: SongLocations[]}[] = [];
 
@@ -66,7 +67,8 @@ export class SongsearchComponent {
     this.data = data
     var discs: Disc[] = Object.values(data)
     discs.forEach( disc => {
-      if (this.countryFilter.includes(disc.country)) {
+      this.countrySet.add(disc.country);
+      if ((this.countryFilter.length > 0 && this.countryFilter.includes(disc.country)) || this.countryFilter.length == 0) {
         disc.songlist.forEach (song => {
           var list = this.songData.get(song.artist+song.title)
           if(list) {
