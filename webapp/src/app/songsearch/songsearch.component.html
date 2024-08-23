@@ -1,24 +1,33 @@
 <mat-drawer-container>
     <mat-drawer #settingsdrawer mode="over" role="region">
-        <div> abcd </div>
+        <div><h2 class="mat-h2"> Settings </h2></div>
+        <div class="toggle-control">
+            <label class="label" id="sortByLabel">
+                Sort By
+            </label>
+            <mat-button-toggle-group name="SortOrder" aria-labelledby="sortByLabel" hideSingleSelectionIndicator="true" multiple="false" [value]="sortByKey" (change)="sortOrderToggle($event)">
+                <mat-button-toggle value=artist>Artist</mat-button-toggle>
+                <mat-button-toggle value=title>Song</mat-button-toggle>
+            </mat-button-toggle-group>
+        </div>
     </mat-drawer>
     <mat-drawer-content>
         <div class="container">
             <div class="navigation-panel">
                 <a (click)="settingsdrawer.toggle()">⚙</a>
-                @for (group of groupedItems; track group) {
-                <a (click)="scrollTo(group.letter)">{{group.letter}}</a>
+                @for (letter of letterArray; track letter) {
+                <a (click)="scrollTo(letter)">{{letter}}</a>
                 }
             </div>
 
             <div class="items-list">
-                @for (group of groupedItems; track group) {
+                @for (group of groupedItems; track group.letter) {
                 <div>
                     <h2 id="{{group.letter}}">{{group.letter}}</h2>
-                    @for (item of group.items; track item) {
+                    @for (item of group.items; track item.artist+item.title) {
                     <mat-expansion-panel>
                         <mat-expansion-panel-header>
-                            @if (sortByArtist) {
+                            @if (sortByKey === 'artist') {
                             <mat-panel-title>{{item.artist}} - {{item.title}}</mat-panel-title>
                             } @else {
                             <mat-panel-title>{{item.title}} by {{item.artist}}</mat-panel-title>
@@ -27,7 +36,7 @@
                         <ng-template matExpansionPanelContent>
                             @for(discid of getTitles(item.artist+item.title); track discid) {
                             <div>
-                                {{discTitle(discid)}}
+                                {{discid.title}}
                             </div>
                             }
                         </ng-template>

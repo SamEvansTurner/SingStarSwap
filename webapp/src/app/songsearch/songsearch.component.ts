@@ -1,66 +1,77 @@
-import { Component, inject } from '@angular/core';
-import { MatSidenavModule } from '@angular/material/sidenav';
+import { Component, ViewChild } from '@angular/core';
+import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { SongsDB, Song, Disc } from '../data/songs-data.model';
 import { SongsDataService } from '../data/songs.data.service';
-import { first } from 'rxjs';
+import { MatLabel } from '@angular/material/form-field';
+import { MatButtonToggleChange, MatButtonToggleModule } from '@angular/material/button-toggle';
+import { FormsModule } from '@angular/forms';
 
+export interface DiscID {
+  id: string;
+  title: string;
+}
 
 export interface SongLocations {
   title: string;
   artist: string;
-  discids: string[];
+  discids: DiscID[];
 }
 
 
 @Component({
   selector: 'app-songsearch',
   standalone: true,
-  imports: [MatSidenavModule, MatExpansionModule],
+  imports: [MatSidenavModule, MatExpansionModule, MatButtonToggleModule, MatLabel, FormsModule],
   templateUrl: './songsearch.component.html',
   styleUrl: './songsearch.component.css'
 })
 export class SongsearchComponent {
+  @ViewChild('settingsdrawer') settingsdrawer!: MatDrawer;
   data : SongsDB = {};
-  songData : Map<string, SongLocations> = new Map<string, SongLocations>();
+  private songData : Map<string, SongLocations> = new Map<string, SongLocations>();
+  songList : Array<SongLocations> = new Array<SongLocations>();
   countryFilter : Array<string> = [];//["AU", "EU", "US"];
   private letterSet : Set<string> = new Set<string>();
+  letterArray : Array<string> = new Array<string>();
   private countrySet : Set<string> = new Set<string>();
-  sortByArtist : boolean = true;
+  sortByKey : string = "title";
   groupedItems : { letter: string, items: SongLocations[]}[] = [];
+
 
   constructor(private dataService: SongsDataService) { }
 
   sortData() {
-    this.letterSet.clear()
-    if (this.sortByArtist) {
-      this.songData = new Map<string, SongLocations>([...this.songData].sort((a,b) => String(a[1].artist).localeCompare(String(b[1].artist))));
-      ([...this.songData]).map((song) => {
-        var firstChar = song[1].artist.codePointAt(0)
-        if (firstChar) {
-          this.letterSet.add(String.fromCodePoint(firstChar))
-        }
-      })
-    } else {
-      this.songData = new Map<string, SongLocations>([...this.songData].sort((a,b) => String(a[1].title).localeCompare(String(b[1].title))));
-      ([...this.songData]).map((song) => {
-        var firstChar = song[1].title.codePointAt(0)
-        if (firstChar) {
-          this.letterSet.add(String.fromCodePoint(firstChar))
-        }
-      })
-    }
-    this.groupItems()
+    this.songList = [...this.songData].sort((a,b) => {
+      let key = this.sortByKey as keyof typeof a[1];
+      return String(a[1][key]).localeCompare(String(b[1][key]))
+    }).map(a=>a[1]);
+    this.buildLetterSet();
+    this.groupItems();
 
   }
 
+  buildLetterSet() {
+    this.letterSet.clear();
+    this.songList.map((song) => {
+      let key = this.sortByKey as keyof typeof song
+      var firstChar = String(song[key]).codePointAt(0)
+      if (firstChar) {
+        this.letterSet.add(String.fromCodePoint(firstChar))
+      }
+    })
+    this.letterArray = [...this.letterSet];
+  }
+
   groupItems() {
-    if (this.sortByArtist) {
-      const grouped = ([...this.letterSet]).map(letter => ({
-        letter, items: ([...this.songData]).filter(item => item[1].artist.startsWith(letter)).map((v) => v[1])
-      }));
-      this.groupedItems = grouped.filter(group => group.items.length > 0);
-    }
+    const grouped = ([...this.letterArray]).map(letter => ({
+      
+      letter, items: this.songList.filter(item => {
+        let key = this.sortByKey as keyof typeof item
+        return String(item[key]).startsWith(letter)
+      })
+    }));
+    this.groupedItems = grouped.filter(group => group.items.length > 0);
   }
 
   createSongListFromDiscs(data : SongsDB) {
@@ -72,9 +83,9 @@ export class SongsearchComponent {
         disc.songlist.forEach (song => {
           var list = this.songData.get(song.artist+song.title)
           if(list) {
-            list.discids.push(disc.id)
+            list.discids.push({id: disc.id, title: this.discTitle(disc.id)})
           } else {
-            this.songData.set(song.artist+song.title, {artist: song.artist, title:song.title, discids: [disc.id]})
+            this.songData.set(song.artist+song.title, {artist: song.artist, title:song.title, discids: [{id: disc.id, title: this.discTitle(disc.id)}]})
           }
         }
         )
@@ -124,7 +135,8 @@ export class SongsearchComponent {
     }
   }
 
-  settings() {
-    
+  sortOrderToggle(event: MatButtonToggleChange) {
+    this.sortByKey = event.value
+    this.sortData()
   }
 }

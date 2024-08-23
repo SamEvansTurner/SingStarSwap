@@ -4,6 +4,16 @@
     height: 90dvh;
 }
 
+mat-drawer {
+    padding: 10px;
+    min-width: 20dvw;
+    max-width: 90dvw;
+}
+
+.mat-h2 {
+    margin: .1em 0 .3em;
+}
+
 .navigation-panel {
     position: -webkit-sticky;
     position: sticky;
@@ -32,3 +42,16 @@
     overflow-y: auto;
     padding: 10px;
 }
+
+.labelBeforeSlide {
+    vertical-align: top;
+    line-height: 24px; 
+    margin-right:0.5rem;
+    margin-bottom:0.5rem;
+  }
+  
+  .toggle-control {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
