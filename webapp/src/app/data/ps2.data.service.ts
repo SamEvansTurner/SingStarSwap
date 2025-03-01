@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, filter, firstValueFrom, Observable, of, tap } from 'rxjs';
+import { BehaviorSubject, filter, Observable } from 'rxjs';
 import { ConfigService } from './config.service';
 import { SongsDataService } from './songs.data.service';
+import { GameData } from './game-data.model';
 
 @Injectable({
   providedIn: 'root'
@@ -16,8 +17,10 @@ export class PS2DataService {
   private ps2ISODataXMLURL = "";
   private ps2ISODataSubject = new BehaviorSubject<string | null>(null);
   private ps2ISOMountURL$ = this.ps2ISODataSubject.asObservable().pipe(filter((data): data is string => data !== null));
-  public folderFilter = "";
-  public ps2MountURL = "";
+  private gameDataSubject = new BehaviorSubject<GameData | null>(null);
+  private gameData$ = this.gameDataSubject.asObservable().pipe(filter((data): data is GameData => data !== null));
+  private interimData : Map <string, GameData> = new Map<string, GameData>();
+  public titlefilter = "";
   
   constructor(private http: HttpClient, private configService: ConfigService, private songDatabase: SongsDataService) { 
     configService.config.subscribe(
@@ -25,11 +28,13 @@ export class PS2DataService {
         if (data) {
           this.ps3Address = "http://" + data?.address;
           this.apiUrl = "http://" + data?.address + "" + data?.ps2path;
-          this.folderFilter = data?.ps2folderfilter;
-          this.ps2MountURL = "http://" + data?.address + "/mount_ps2/"
+          this.titlefilter = data?.titlefilter;
           this.ps2ISODataXMLURL = "http://" + data?.address + "/dev_hdd0/xmlhost/game_plugin/mygames.xml";
           this.fetchSingStarGameData();
-          this.fetchPS2ISOData()
+          this.fetchPS2ISOData();
+          this.ps2GameData$.subscribe({
+            next: this.processSingStarGameFolderData.bind(this)
+          });
         }
       }
     )
@@ -78,12 +83,63 @@ export class PS2DataService {
     }
   }
 
-  public getSingStarGameData(): Observable<string> {
-      return this.ps2GameData$;
+  private processSingStarGameFolderData(data: string) {
+    var domParser = new DOMParser();
+    var htmlElement = domParser.parseFromString(data, 'text/html');
+    var tableObject = htmlElement.querySelector("table[id=files]")
+    var dirs = tableObject?.querySelectorAll("a[class=d]")
+    dirs?.forEach((item, iterator) => {
+      if (item.innerHTML.toLowerCase().includes(this.titlefilter.toLowerCase())) {
+        var cols = item.parentElement?.parentElement?.querySelectorAll("td")
+        var keyRef = cols?.item(0).querySelector("a")?.getAttribute("href") as string
+        var keyR = this.apiUrl + "/" + keyRef
+        var mountLinkRef = cols?.item(1).querySelector("a")?.getAttribute("href") as string
+        var mountLink = this.toUrl(mountLinkRef)
+        // This seems to crash webmanmod. Maybe there's a way to send the requests in a queue or something?
+        // this.getGameID(encodeURI(keyR))
+        if (keyR && mountLink) {
+          this.interimData.set(encodeURI(keyR), {
+            key: keyR,
+            platform: "PS2",
+            name: item.innerHTML + '\n',
+            mountUrl: encodeURI(mountLink.replace("mount.ps3", "mount.ps2"))});
+          
+        }
+      }
+    }
+    )
+  } 
+
+  private getGameID(url: string) {
+    this.http.get(url, {responseType: 'text'}).subscribe(
+      { 
+        next: this.PublishGameWithID.bind(this, url),
+        error: (err) => {
+          console.error("error in ps2dataservice: ", err);
+        }
+      }
+    );
+
   }
 
-  public getPS2ISOMountURL(): Observable<string> {
-      return this.ps2ISOMountURL$;
+  private PublishGameWithID(url: string, data: string) {
+    var ourGame = this.interimData.get(url);
+    if (ourGame) {
+      var domParser = new DOMParser();
+      var htmlElement = domParser.parseFromString(data, 'text/html');
+      var gameID = htmlElement.querySelector("a[class=w]")?.innerHTML ?? '';
+      ourGame.gameSerial = gameID.replace("_", "").replace(".", "");
+      this.gameDataSubject.next(ourGame);
+    }
+    this.interimData.delete(url);
+  }
+
+  public getSingStarGameData(): Observable<GameData> {
+      return this.gameData$;
+  }
+
+  public getPS2MountURL(): Observable<string> {
+    return this.ps2ISOMountURL$;
   }
 
   public toUrl(href: string) : string {

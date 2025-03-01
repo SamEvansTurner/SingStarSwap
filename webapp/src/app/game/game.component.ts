@@ -1,12 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { PS2DataService } from '../data/ps2.data.service';
+import { PS3DataService } from '../data/ps3.data.service';
+import { GameData } from '../data/game-data.model';
 
-
-export interface PS2GameData {
-  name: string,
-  mountUrl: string,
-  imageUrl?: string
-}
 
 @Component({
   selector: 'app-gamecards',
@@ -16,56 +12,42 @@ export interface PS2GameData {
   styleUrl: './game.component.css'
 })
 export class GameComponent implements OnInit {
-  data: Map<string, PS2GameData>  = new Map<string, PS2GameData>();
+  data: Array<GameData> = new Array<GameData>();
   isoMountURL = "";
 
-  constructor(private dataService: PS2DataService) { }
-
-  private getGameID() {
-
-  }
-
-  private processSingStarGameFolderData(data: string) {
-    var domParser = new DOMParser();
-    var htmlElement = domParser.parseFromString(data, 'text/html');
-    var tableObject = htmlElement.querySelector("table[id=files]")
-    var dirs = tableObject?.querySelectorAll("a[class=d]")
-    dirs?.forEach((item, iterator) => {
-      if (item.innerHTML.toLowerCase().includes(this.dataService.folderFilter.toLowerCase())) {
-        var cols = item.parentElement?.parentElement?.querySelectorAll("td")
-        var keyRef = cols?.item(0).querySelector("a")?.getAttribute("href") as string
-        var key = this.dataService.apiUrl + "/" + keyRef
-        var mountLinkRef = cols?.item(1).querySelector("a")?.getAttribute("href") as string
-        var mountLink = this.dataService.toUrl(mountLinkRef)
-        if (key && mountLink) {
-          this.data.set(key, {
-            name: item.innerHTML + '\n',
-            mountUrl: encodeURI(mountLink.replace("mount.ps3", "mount.ps2"))
-          })
-        }
-        this.getGameID()
-      }
-    }
-    )
-  } 
+  constructor(private ps2DataService: PS2DataService, private ps3DataService: PS3DataService) { }
 
   ngOnInit(): void {
-    var singStarGameData = this.dataService.getSingStarGameData()
-    singStarGameData.subscribe(
+    var ps2GameData = this.ps2DataService.getSingStarGameData()
+    ps2GameData.subscribe(
       {
-        next: this.processSingStarGameFolderData.bind(this)
+        next: (item) => {this.data.push(item)}
       }
     )
-    var ps2ISOMountPath = this.dataService.getPS2ISOMountURL()
-    ps2ISOMountPath.subscribe(
+    var ps3GameData = this.ps3DataService.getSingStarGameData()
+    ps3GameData.subscribe(
       {
-        next: (response) => {if(response) {this.isoMountURL = response};}
+        next: (item) => {this.data.push(item)}
       }
     )
+  
   }
 
   handleClick(item: any) {
-    console.log(this.data.get(item)?.name)
-    console.log(this.data.get(item)?.mountUrl)
+    console.log(this.data[item]?.name)
+    console.log(this.data[item]?.mountUrl)
+    console.log(this.data[item]?.gameSerial ?? '')
   }
 }
+
+
+/*
+1.Create a directory on internal/external and extract/copy the loose Singstar files to it.
+Example: "dev_usb001/Singstar/SingStar Pop/Pack_EE.PAK" etc.
+2. Load up any PS3 SingStar game
+3. In the song selection, press SELECT to open the change disc dialogue
+4. Eject your disc if there's one inside the PS3
+5. Now if you want to load the SingStar Pop from above, you should use this command:
+http://192.168.178.xx/mount_ps2/dev_usb001/Singstar/SingStar+Pop​
+6. Then insert any PS2 disc. It should automatically load the mounted SingStar game.
+*/

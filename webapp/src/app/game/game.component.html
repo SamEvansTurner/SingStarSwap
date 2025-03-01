@@ -1,6 +1,6 @@
          
 <div>
-    @for (item of data.keys(); track item) {
-        <div><button (click)="handleClick(item)">{{data.get(item)?.name}}</button></div>
+    @for (item of data; track item; let idx = $index) {
+        <div><button (click)="handleClick(idx)">{{data[idx].name}} [{{data[idx].platform}}]</button></div>
     }   
 </div>

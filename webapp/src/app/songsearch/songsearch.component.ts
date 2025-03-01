@@ -22,7 +22,7 @@ export interface SongLocations {
 @Component({
   selector: 'app-songsearch',
   standalone: true,
-  imports: [MatSidenavModule, MatExpansionModule, MatButtonToggleModule, MatLabel, FormsModule],
+  imports: [MatSidenavModule, MatExpansionModule, MatButtonToggleModule, FormsModule],
   templateUrl: './songsearch.component.html',
   styleUrl: './songsearch.component.css'
 })
@@ -35,7 +35,7 @@ export class SongsearchComponent {
   private letterSet : Set<string> = new Set<string>();
   letterArray : Array<string> = new Array<string>();
   private countrySet : Set<string> = new Set<string>();
-  sortByKey : string = "title";
+  sortByKey : string = "artist";
   groupedItems : { letter: string, items: SongLocations[]}[] = [];
 
 

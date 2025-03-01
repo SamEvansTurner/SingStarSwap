@@ -23,8 +23,8 @@ export class ConfigService {
             this.configSubject.next({
               address:"192.168.21.30",
               ps2path:"/dev_hdd0/SINGSTAR",
-              ps2isopath:"/net0/PS3ISO",
-              ps2folderfilter:"SingStar",
+              ps2isopath:"/dev_hdd0/PS2ISO",
+              titlefilter:"SingStar",
               ps3path:"/net0/PS3ISO",
               ps3isofilter:"SingStar"})
           }

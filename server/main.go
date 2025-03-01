@@ -17,12 +17,12 @@ type ServerConfig struct {
 }
 
 type PS3Config struct {
-	Address         string `json:"address"`
-	PS2Path         string `json:"ps2path"`
-	PS2ISOPath      string `json:"ps2isopath"`
-	PS2FolderFilter string `json:"ps2folderfilter"`
-	PS3Path         string `json:"ps3path"`
-	PS3IsoFilter    string `json:"ps3isofilter"`
+	Address      string `json:"address"`
+	PS2Path      string `json:"ps2path"`
+	PS2ISOPath   string `json:"ps2isopath"`
+	TitleFilter  string `json:"titlefilter"`
+	PS3Path      string `json:"ps3path"`
+	PS3IsoFilter string `json:"ps3isofilter"`
 }
 
 type Config struct {
