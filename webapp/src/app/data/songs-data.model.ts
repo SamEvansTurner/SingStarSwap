@@ -15,3 +15,15 @@ export interface Disc {
 export interface SongsDB {
     [id: string]: Disc
 }
+
+
+export interface DiscID {
+  id: string;
+  title: string;
+}
+
+export interface SongLocations {
+  title: string;
+  artist: string;
+  discids: DiscID[];
+}
