@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, filter, Observable } from 'rxjs';
-import { Disc, Song, SongsDB } from './songs-data.model';
+import { Disc, Song, SongsDB } from '../data/songs-data.model';
 import { Location } from '@angular/common';
 
 @Injectable({

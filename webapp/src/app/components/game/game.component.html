@@ -1,0 +1,6 @@
+         
+<div>
+    @for (item of (games$ | async); track item) {
+        <div><button (click)="handleClick(item)">{{item.name}} [{{item.platform}}]</button></div>
+    }   
+</div>

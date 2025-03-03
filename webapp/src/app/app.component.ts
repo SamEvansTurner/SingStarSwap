@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { MatTabsModule } from '@angular/material/tabs';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { GameComponent } from './game/game.component';
-import { SongsearchComponent } from './songsearch/songsearch.component';
+import { GameComponent } from './components/game/game.component';
+import { SongsearchComponent } from './components/songsearch/songsearch.component';
 
 @Component({
   selector: 'app-root',
@@ -12,5 +12,5 @@ import { SongsearchComponent } from './songsearch/songsearch.component';
   styleUrl: './app.component.css'
 })
 export class AppComponent {
-  title = 'webapp';
+  title = 'SingStarSwap';
 }

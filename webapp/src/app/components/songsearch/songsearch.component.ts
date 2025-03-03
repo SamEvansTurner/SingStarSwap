@@ -1,11 +1,12 @@
 import { Component, ViewChild } from '@angular/core';
 import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { SongsDB, Song, Disc } from '../data/songs-data.model';
-import { SongsDataService } from '../data/songs.data.service';
+import { SongsDB, Song, Disc } from '../../data/songs-data.model';
+import { SongsDataService } from '../../services/songs.data.service';
 import { MatLabel } from '@angular/material/form-field';
 import { MatButtonToggleChange, MatButtonToggleModule } from '@angular/material/button-toggle';
 import { FormsModule } from '@angular/forms';
+import { GamesDataService } from '../../services/games.data.service';
 
 export interface DiscID {
   id: string;
@@ -39,7 +40,7 @@ export class SongsearchComponent {
   groupedItems : { letter: string, items: SongLocations[]}[] = [];
 
 
-  constructor(private dataService: SongsDataService) { }
+  constructor(private dataService: SongsDataService, private gamesDataService: GamesDataService) { }
 
   sortData() {
     this.songList = [...this.songData].sort((a,b) => {

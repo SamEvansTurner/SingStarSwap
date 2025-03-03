@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, filter, Observable } from 'rxjs';
 import { ConfigService } from './config.service';
 import { SongsDataService } from './songs.data.service';
-import { GameData } from './game-data.model';
+import { GameData, Platforms, GameData_EMPTY } from '../data/game-data.model';
+import { PS3RequestService } from './ps3-requestsservice.service';
 
 @Injectable({
   providedIn: 'root'
@@ -20,9 +20,10 @@ export class PS2DataService {
   private gameDataSubject = new BehaviorSubject<GameData | null>(null);
   private gameData$ = this.gameDataSubject.asObservable().pipe(filter((data): data is GameData => data !== null));
   private interimData : Map <string, GameData> = new Map<string, GameData>();
+  private ps2SerialRegex : RegExp = /SCES|SLES|SCUS|SLUS/; //Maybe need to add extras here. But for now leave like this.
   public titlefilter = "";
   
-  constructor(private http: HttpClient, private configService: ConfigService, private songDatabase: SongsDataService) { 
+  constructor(private configService: ConfigService, private songDatabase: SongsDataService, private ps3RequestService: PS3RequestService) { 
     configService.config.subscribe(
       data => {
         if (data) {
@@ -41,7 +42,7 @@ export class PS2DataService {
   }
 
   private fetchSingStarGameData() {
-    this.http.get(this.apiUrl, {responseType: 'text'}).subscribe(
+    this.ps3RequestService.makeRequest(this.apiUrl).subscribe( 
       { 
         next: (response) => {
           this.ps2GameDataSubject.next(response)
@@ -54,7 +55,7 @@ export class PS2DataService {
   }
 
   private fetchPS2ISOData() {
-    this.http.get(this.ps2ISODataXMLURL, {responseType: 'text'}).subscribe(
+    this.ps3RequestService.makeRequest(this.ps2ISODataXMLURL).subscribe(
       { 
         next: (response) => {
           this.processPS2ISOData(response)
@@ -96,11 +97,11 @@ export class PS2DataService {
         var mountLinkRef = cols?.item(1).querySelector("a")?.getAttribute("href") as string
         var mountLink = this.toUrl(mountLinkRef)
         // This seems to crash webmanmod. Maybe there's a way to send the requests in a queue or something?
-        // this.getGameID(encodeURI(keyR))
+        this.getGameID(encodeURI(keyR))
         if (keyR && mountLink) {
           this.interimData.set(encodeURI(keyR), {
             key: keyR,
-            platform: "PS2",
+            platform: Platforms.PS2,
             name: item.innerHTML + '\n',
             mountUrl: encodeURI(mountLink.replace("mount.ps3", "mount.ps2"))});
           
@@ -111,7 +112,7 @@ export class PS2DataService {
   } 
 
   private getGameID(url: string) {
-    this.http.get(url, {responseType: 'text'}).subscribe(
+    this.ps3RequestService.makeRequest(url).subscribe(
       { 
         next: this.PublishGameWithID.bind(this, url),
         error: (err) => {
@@ -123,14 +124,21 @@ export class PS2DataService {
   }
 
   private PublishGameWithID(url: string, data: string) {
-    var ourGame = this.interimData.get(url);
-    if (ourGame) {
-      var domParser = new DOMParser();
-      var htmlElement = domParser.parseFromString(data, 'text/html');
-      var gameID = htmlElement.querySelector("a[class=w]")?.innerHTML ?? '';
-      ourGame.gameSerial = gameID.replace("_", "").replace(".", "");
-      this.gameDataSubject.next(ourGame);
-    }
+    var ourGame : GameData = this.interimData.get(url) ?? GameData_EMPTY;
+    if (ourGame === GameData_EMPTY) return;
+
+    var domParser = new DOMParser();
+    var htmlElement = domParser.parseFromString(data, 'text/html');
+    var gameIDs = htmlElement.querySelectorAll("a.w");
+    gameIDs.forEach( gameID => {
+      var matches = this.ps2SerialRegex.exec(gameID.innerHTML);
+      if (matches) {
+        ourGame.gameSerial = gameID.innerHTML.replace("_", "-").replace(".", "");
+      }
+      
+    })
+
+    this.gameDataSubject.next(ourGame);
     this.interimData.delete(url);
   }
 

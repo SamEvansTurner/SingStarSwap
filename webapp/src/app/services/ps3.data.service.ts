@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, filter, Observable } from 'rxjs';
 import { ConfigService } from './config.service';
 import { SongsDataService } from './songs.data.service';
-import { GameData } from './game-data.model';
+import { GameData, Platforms } from '../data/game-data.model';
+import { PS3RequestService } from './ps3-requestsservice.service';
 
 @Injectable({
   providedIn: 'root'
@@ -17,7 +17,7 @@ export class PS3DataService {
   private gameData$ = this.gameDataSubject.asObservable().pipe(filter((data): data is GameData => data !== null));
   
   
-  constructor(private http: HttpClient, private configService: ConfigService, private songDatabase: SongsDataService) { 
+  constructor(private configService: ConfigService, private songDatabase: SongsDataService, private ps3RequestService: PS3RequestService) { 
     configService.config.subscribe(
       data => {
         if (data) {
@@ -32,7 +32,7 @@ export class PS3DataService {
   }
 
   private fetchPS3ISOData() {
-    this.http.get(this.ps3ISODataXMLURL, {responseType: 'text'}).subscribe(
+    this.ps3RequestService.makeRequest(this.ps3ISODataXMLURL).subscribe(
       { 
         next: (response) => {
           this.processPS3ISOData(response)
@@ -63,10 +63,10 @@ export class PS3DataService {
         if (title.includes(this.titleFilter)) {
           this.gameDataSubject.next({
             key: this.ps3Address + keyURL.replace("/mount_ps3/","/"),
-            platform: "PS3",
+            platform: Platforms.PS3,
             name: title + '\n',
             mountUrl: encodeURI(this.ps3Address + mountURL),
-            gameSerial: serial ? serial[1] : ''
+            gameSerial: serial ? serial[1].replace(/(....)/, "$1-") : ''
           });
         }
       });

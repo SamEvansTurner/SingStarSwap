@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, filter, Observable } from 'rxjs';
-import { Config } from './config-data.model';
+import { Config } from '../data/config-data.model';
 import { Location } from '@angular/common';
 
 @Injectable({
