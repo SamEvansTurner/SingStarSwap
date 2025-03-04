@@ -14,9 +14,6 @@ export class PS2DataService {
   private ps2CoverDatabaseURL = "https://raw.githubusercontent.com/xlenore/ps2-covers/main/covers/default/${serial}.jpg";
   private ps2GameDataSubject = new BehaviorSubject<string | null>(null);
   private ps2GameData$ = this.ps2GameDataSubject.asObservable().pipe(filter((data): data is string => data !== null));
-  private ps2ISODataXMLURL = "";
-  private ps2ISODataSubject = new BehaviorSubject<string | null>(null);
-  private ps2ISOMountURL$ = this.ps2ISODataSubject.asObservable().pipe(filter((data): data is string => data !== null));
   private gameDataSubject = new BehaviorSubject<GameData | null>(null);
   private gameData$ = this.gameDataSubject.asObservable().pipe(filter((data): data is GameData => data !== null));
   private interimData : Map <string, GameData> = new Map<string, GameData>();
@@ -30,9 +27,7 @@ export class PS2DataService {
           this.ps3Address = "http://" + data?.address;
           this.apiUrl = "http://" + data?.address + "" + data?.ps2path;
           this.titlefilter = data?.titlefilter;
-          this.ps2ISODataXMLURL = "http://" + data?.address + "/dev_hdd0/xmlhost/game_plugin/mygames.xml";
           this.fetchSingStarGameData();
-          this.fetchPS2ISOData();
           this.ps2GameData$.subscribe({
             next: this.processSingStarGameFolderData.bind(this)
           });
@@ -42,7 +37,7 @@ export class PS2DataService {
   }
 
   private fetchSingStarGameData() {
-    this.ps3RequestService.makeRequest(this.apiUrl).subscribe( 
+    this.ps3RequestService.fetchHttp(this.apiUrl).subscribe( 
       { 
         next: (response) => {
           this.ps2GameDataSubject.next(response)
@@ -52,36 +47,6 @@ export class PS2DataService {
         }
       }
     );
-  }
-
-  private fetchPS2ISOData() {
-    this.ps3RequestService.makeRequest(this.ps2ISODataXMLURL).subscribe(
-      { 
-        next: (response) => {
-          this.processPS2ISOData(response)
-        },
-        error: (err) => {
-          console.error("error in ps2dataservice: ", err);
-        }
-      }
-    );
-  }
-
-  private processPS2ISOData(response : string | null) {
-    if (typeof(response) == 'string') {
-      // For some reason webmanmod has odd extra non-valid xml tags and parses all data with regex.
-      // Remove the extra tags and just parse as xml.
-      var sanitizedStr = response.replaceAll(new RegExp('<>(.*?)</>', 'g'), '$1')
-      var domParser = new DOMParser();
-      var xmlDocument = domParser.parseFromString(sanitizedStr, 'text/xml');
-      var ps2Segment = xmlDocument.querySelector("V[id=seg_wm_ps2_items]");
-      //We only need the first entry with an action - this is an iso file that we can use to force the PS3 to recognize a PS2 disk inserted.
-      var diskMountURL = ps2Segment?.querySelector("P[key=module_action]")
-      var content = diskMountURL?.textContent;
-      if (content) {
-        this.ps2ISODataSubject.next(this.ps3Address + content);
-      }
-    }
   }
 
   private processSingStarGameFolderData(data: string) {
@@ -112,7 +77,7 @@ export class PS2DataService {
   } 
 
   private getGameID(url: string) {
-    this.ps3RequestService.makeRequest(url).subscribe(
+    this.ps3RequestService.fetchHttp(url).subscribe(
       { 
         next: this.PublishGameWithID.bind(this, url),
         error: (err) => {
@@ -144,10 +109,6 @@ export class PS2DataService {
 
   public getSingStarGameData(): Observable<GameData> {
       return this.gameData$;
-  }
-
-  public getPS2MountURL(): Observable<string> {
-    return this.ps2ISOMountURL$;
   }
 
   public toUrl(href: string) : string {

@@ -3,6 +3,7 @@ import { GameData } from '../../data/game-data.model';
 import { GamesDataService } from '../../services/games.data.service';
 import { Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
+import { PS3RequestService } from '../../services/ps3-requestsservice.service';
 
 
 @Component({
@@ -16,7 +17,7 @@ export class GameComponent implements OnInit {
 
   games$! : Observable<Array<GameData>>;
 
-  constructor(protected gamesDataService: GamesDataService ) { }
+  constructor(protected gamesDataService: GamesDataService, private ps3RequestService : PS3RequestService ) { }
 
   ngOnInit(): void {
     this.games$ = this.gamesDataService.gameData$;
@@ -26,6 +27,7 @@ export class GameComponent implements OnInit {
     console.log(item.name)
     console.log(item.mountUrl)
     console.log(item.gameSerial ?? '')
+    this.ps3RequestService.loadDisc(item)
   }
 }
 

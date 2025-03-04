@@ -32,7 +32,7 @@ export class PS3DataService {
   }
 
   private fetchPS3ISOData() {
-    this.ps3RequestService.makeRequest(this.ps3ISODataXMLURL).subscribe(
+    this.ps3RequestService.fetchHttp(this.ps3ISODataXMLURL).subscribe(
       { 
         next: (response) => {
           this.processPS3ISOData(response)
