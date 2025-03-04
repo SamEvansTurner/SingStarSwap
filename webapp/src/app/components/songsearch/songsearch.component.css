@@ -14,6 +14,11 @@ mat-drawer {
     margin: .1em 0 .3em;
 }
 
+.song-button {
+    width: 100% !important;
+    min-width: unset !important;
+}
+
 .navigation-panel {
     position: -webkit-sticky;
     position: sticky;
@@ -44,7 +49,6 @@ mat-drawer {
 }
 
 .labelBeforeSlide {
-    vertical-align: top;
     line-height: 24px; 
     margin-right:0.5rem;
     margin-bottom:0.5rem;

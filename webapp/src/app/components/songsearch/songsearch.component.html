@@ -2,11 +2,19 @@
     <mat-drawer #settingsdrawer mode="over" role="region">
         <div><h2 class="mat-h2"> Settings </h2></div>
         <div class="toggle-control">
-            <label class="label" id="sortByLabel">Sort By</label>
-            <mat-button-toggle-group name="SortOrder" aria-labelledby="sortByLabel" hideSingleSelectionIndicator="true" multiple="false" [value]="sortByKey" (change)="sortOrderToggle($event)">
-                <mat-button-toggle value=artist>Artist</mat-button-toggle>
-                <mat-button-toggle value=title>Song</mat-button-toggle>
-            </mat-button-toggle-group>
+            <div>
+                <label class="labelBeforeSlide" id="sortByLabel">Sort By</label>
+                <mat-button-toggle-group name="SortOrder" aria-labelledby="sortByLabel" hideSingleSelectionIndicator="true" multiple="false" [value]="sortByKeySubject.value" (change)="sortOrderToggle($event)">
+                    <mat-button-toggle value=artist>Artist</mat-button-toggle>
+                    <mat-button-toggle value=title>Song</mat-button-toggle>
+                </mat-button-toggle-group>
+            </div>
+        </div>
+        <div class="toggle-control">
+            <div>
+                <label class="labelBeforeSlide" id="filterAvailableLabel">Available Only</label>
+                <mat-slide-toggle name="FilterAvailable" aria-labelledby="filterAvailableLabel" [checked]="filterByAvailableSubject.value" (change)="filterAvailableToggle($event)"/>
+            </div>
         </div>
     </mat-drawer>
     <mat-drawer-content>
@@ -23,22 +31,13 @@
                 <div>
                     <h2 id="{{group.letter}}">{{group.letter}}</h2>
                     @for (item of group.items; track item.artist+item.title) {
-                    <mat-expansion-panel>
-                        <mat-expansion-panel-header>
-                            @if (sortByKey === 'artist') {
-                            <mat-panel-title>{{item.artist}} - {{item.title}}</mat-panel-title>
-                            } @else {
-                            <mat-panel-title>{{item.title}} by {{item.artist}}</mat-panel-title>
-                            }
-                        </mat-expansion-panel-header>
-                        <ng-template matExpansionPanelContent>
-                            @for(discid of getTitles(item); track discid) {
-                            <div>
-                                {{discid}}
-                            </div>
-                            }
-                        </ng-template>
-                    </mat-expansion-panel>
+                    <button mat-stroked-button class="song-button" (click)="openDialog(item)">
+                        @if (sortByKeySubject.value === 'artist') {
+                        <mat-panel-title>{{item.artist}} - {{item.title}}</mat-panel-title>
+                        } @else {
+                        <mat-panel-title>{{item.title}} by {{item.artist}}</mat-panel-title>
+                        }
+                    </button>
                     }
                 </div>
                 }

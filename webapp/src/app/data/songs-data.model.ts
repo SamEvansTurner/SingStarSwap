@@ -20,6 +20,7 @@ export interface SongsDB {
 export interface DiscID {
   id: string;
   title: string;
+  fulltitle: string;
 }
 
 export interface SongLocations {

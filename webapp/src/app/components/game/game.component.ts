@@ -19,7 +19,7 @@ export class GameComponent implements OnInit {
   constructor(protected gamesDataService: GamesDataService ) { }
 
   ngOnInit(): void {
-    this.games$ = this.gamesDataService.getData();
+    this.games$ = this.gamesDataService.gameData$;
   }
 
   handleClick(item: GameData) {
