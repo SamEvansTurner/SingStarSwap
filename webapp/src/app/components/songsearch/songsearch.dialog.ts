@@ -24,7 +24,6 @@ interface SongSearchDialogData {
     readonly dialogRef = inject(MatDialogRef<SongSearchDialog>);
 
     constructor() {
-        console.log(this.data);
     }
   
     onNoClick(): void {

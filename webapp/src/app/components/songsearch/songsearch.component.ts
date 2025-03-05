@@ -123,7 +123,6 @@ export class SongsearchComponent implements OnInit {
   }
 
   filterAvailableToggle(event: MatSlideToggleChange): void {
-    console.log(event.checked);
     this.filterByAvailableSubject.next(event.checked as boolean);
   }
 
@@ -158,7 +157,6 @@ export class SongsearchComponent implements OnInit {
   }
 
   openDialog(input : SongLocations) {
-    console.log(input)
     let dialogRef = this.dialog.open(SongSearchDialog, {height:"30%", width:"30%", data: {content: this.getTitles(input)}}, )
   }
 }

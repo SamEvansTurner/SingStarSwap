@@ -1,8 +1,25 @@
+.flex-container {
+  display:flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
 
-button {
-  padding: 10px;
-  border: solid 1px var(--primary-color);
-  background: var(--primary-color);
-  color: white;
-  border-radius: 8px;
+.game-card {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  padding: 8px;
+  margin: 0.2%;
+}
+
+mat-card img {
+  width: 256px;
+  height: auto;
+  margin: auto auto;
+}
+
+mat-card-header {
+  display: flex;
+  padding: 16px;
+  align-items: center;
+  justify-content: center;
 }

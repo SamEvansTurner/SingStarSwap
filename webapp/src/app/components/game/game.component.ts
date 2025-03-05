@@ -4,29 +4,41 @@ import { GamesDataService } from '../../services/games.data.service';
 import { Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { PS3RequestService } from '../../services/ps3-requestsservice.service';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
 
 
 @Component({
   selector: 'app-gamecards',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MatCardModule, MatButtonModule],
   templateUrl: './game.component.html',
   styleUrl: './game.component.css'
 })
 export class GameComponent implements OnInit {
 
   games$! : Observable<Array<GameData>>;
+  maxwidth = 0;
+  gamewidth : number | CSSStyleValue = `${this.maxwidth}px`;
 
   constructor(protected gamesDataService: GamesDataService, private ps3RequestService : PS3RequestService ) { }
 
   ngOnInit(): void {
     this.games$ = this.gamesDataService.gameData$;
+    setTimeout(() => {
+      var b = document.getElementsByClassName('game-card');
+      for (var i = 0; i < b.length; i++) {
+        var elewidth = b[i].scrollWidth; 
+        if ( elewidth > this.maxwidth) {
+          this.maxwidth = elewidth;
+          this.gamewidth = `${this.maxwidth}px`;
+        }
+      }
+
+    }, 0)
   }
 
   handleClick(item: GameData) {
-    console.log(item.name)
-    console.log(item.mountUrl)
-    console.log(item.gameSerial ?? '')
     this.ps3RequestService.loadDisc(item)
   }
 }

@@ -99,6 +99,7 @@ export class PS2DataService {
       var matches = this.ps2SerialRegex.exec(gameID.innerHTML);
       if (matches) {
         ourGame.gameSerial = gameID.innerHTML.replace("_", "-").replace(".", "");
+        ourGame.imageUrl = this.ps2CoverDatabaseURL.replace("${serial}", ourGame.gameSerial);
       }
       
     })

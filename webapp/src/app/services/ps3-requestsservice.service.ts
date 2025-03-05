@@ -40,6 +40,7 @@ export class PS3RequestService {
       data => {
         if (data) {
           this.ps3Address = "http://" + data?.address;
+          this.unmountURL = this.ps3Address + "/mount_ps3/unmount"
           this.ps2ISODataXMLURL = "http://" + data?.address + "/dev_hdd0/xmlhost/game_plugin/mygames.xml";
           this.fetchPS2ISOData();
         }
@@ -59,8 +60,8 @@ export class PS3RequestService {
     // Add the request URL and subject to the queue for sequential processing
     this.requestQueue$.next({ url, subject: responseSubject });
 
-    // Return the subject's observable to the component to subscribe to
-    return responseSubject.asObservable();
+    // Return the subject's observable to the component to subscribe to. Filter out null values
+    return responseSubject.asObservable().pipe(filter(data => data !== null));
   }
 
   loadDisc(game: GameData) {
@@ -72,9 +73,9 @@ export class PS3RequestService {
       { 
         next: () => {
           if(game.platform == Platforms.PS2) {
-            this.loadPS2Disc(game)
+            setTimeout(this.loadPS2Disc.bind(this, game), 1000);
           } else {
-            this.loadPS3Disc(game)
+            setTimeout(this.loadPS3Disc.bind(this, game), 1000);
           }
         },
         error: (err) => {
@@ -93,15 +94,15 @@ export class PS3RequestService {
     this.fetchHttp(game.mountUrl).subscribe(
       {
         next: () => {
-            this.fetchHttp(this.ps2DiscMountURL).subscribe(
-              {
-                next: () => {
-                },
-                error: (err) => {
-                  console.error("error in ps2 disc mount: ", err);
-                }
+          this.fetchHttp(this.ps2DiscMountURL).subscribe(
+            {
+              next: () => {
+              },
+              error: (err) => {
+                console.error("error in ps2 disc mount: ", err);
               }
-            )
+            }
+          )
         },
         error: (err) => {
           console.error("error in ps2 data mount: ", err);
