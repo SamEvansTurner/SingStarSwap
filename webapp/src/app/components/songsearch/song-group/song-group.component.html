@@ -1,0 +1,14 @@
+<div class="song-group">
+  <h2 class="group-header" [id]="group.letter">{{ group.letter }}</h2>
+  
+  <div class="songs-list">
+    <button 
+      *ngFor="let song of group.songs; trackBy: trackBySong" 
+      mat-stroked-button 
+      class="song-button"
+      (click)="onSongClick(song)"
+      [title]="getSongDisplayText(song)">
+      <span class="song-text">{{ getSongDisplayText(song) }}</span>
+    </button>
+  </div>
+</div>

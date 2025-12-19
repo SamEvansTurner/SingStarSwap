@@ -1,47 +1,75 @@
-<mat-drawer-container>
-    <mat-drawer #settingsdrawer mode="over" role="region">
-        <div><h2 class="mat-h2"> Settings </h2></div>
-        <div class="toggle-control">
-            <div>
-                <label class="labelBeforeSlide" id="sortByLabel">Sort By</label>
-                <mat-button-toggle-group name="SortOrder" aria-labelledby="sortByLabel" hideSingleSelectionIndicator="true" multiple="false" [value]="sortByKeySubject.value" (change)="sortOrderToggle($event)">
-                    <mat-button-toggle value=artist>Artist</mat-button-toggle>
-                    <mat-button-toggle value=title>Song</mat-button-toggle>
-                </mat-button-toggle-group>
-            </div>
-        </div>
-        <div class="toggle-control">
-            <div>
-                <label class="labelBeforeSlide" id="filterAvailableLabel">Available Only</label>
-                <mat-slide-toggle name="FilterAvailable" aria-labelledby="filterAvailableLabel" [checked]="filterByAvailableSubject.value" (change)="filterAvailableToggle($event)"/>
-            </div>
-        </div>
-    </mat-drawer>
-    <mat-drawer-content>
-        <div class="container">
-            <div class="navigation-panel">
-                <a (click)="settingsdrawer.toggle()">⚙</a>
-                @for (letter of letterArray; track letter) {
-                <a (click)="scrollTo(letter)">{{letter}}</a>
-                }
-            </div>
+<mat-drawer-container class="drawer-container" *ngIf="vm$ | async as vm">
+  <mat-drawer #settingsDrawer mode="over" position="start">
+    <app-song-filters
+      [sortBy]="vm.state.sortBy"
+      [showAvailableOnly]="vm.state.showAvailableOnly"
+      (sortChange)="onSortChange($event)"
+      (filterChange)="onFilterChange($event)">
+    </app-song-filters>
+  </mat-drawer>
 
-            <div class="items-list">
-                @for (group of groupedItems; track group.letter) {
-                <div>
-                    <h2 id="{{group.letter}}">{{group.letter}}</h2>
-                    @for (item of group.items; track item.artist+item.title) {
-                    <button mat-stroked-button class="song-button" (click)="openDialog(item)">
-                        @if (sortByKeySubject.value === 'artist') {
-                        <mat-panel-title>{{item.artist}} - {{item.title}}</mat-panel-title>
-                        } @else {
-                        <mat-panel-title>{{item.title}} by {{item.artist}}</mat-panel-title>
-                        }
-                    </button>
-                    }
-                </div>
-                }
-            </div>
+  <mat-drawer-content class="main-content">
+    <div class="content-container">
+<app-letter-navigation
+        class="letter-nav-panel"
+        [letters]="vm.state.letterIndex"
+        [showSettingsButton]="true"
+        (letterClick)="onLetterClick($event)"
+        (settingsClick)="onSettingsToggle(settingsDrawer)">
+      </app-letter-navigation>
+
+      <div class="songs-container">
+        <!-- Loading State -->
+        <div *ngIf="vm.showLoading" class="loading-container">
+          <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p>Loading songs...</p>
+          </div>
         </div>
-    </mat-drawer-content>
+
+        <!-- Error State -->
+        <div *ngIf="vm.showError" class="error-container">
+          <div class="error-content">
+            <h3>Oops! Something went wrong</h3>
+            <p>{{ vm.state.error?.errorMessage }}</p>
+            <button 
+              mat-raised-button 
+              color="primary" 
+              (click)="processData()">
+              Try Again
+            </button>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="vm.isEmpty" class="empty-container">
+          <div class="empty-content">
+            <h3>No songs found</h3>
+            <p>Try adjusting your filters or check your data connection.</p>
+          </div>
+        </div>
+
+        <!-- Content -->
+        <div *ngIf="vm.showContent" class="songs-list">
+          <div class="songs-stats" *ngIf="vm.state.totalSongs > 0">
+            <span>
+              Showing {{ vm.state.songs.length }} of {{ vm.state.totalSongs }} songs
+              <span *ngIf="vm.state.showAvailableOnly">
+                ({{ vm.state.availableSongs }} available)
+              </span>
+            </span>
+          </div>
+
+          <div class="groups-container">
+            <app-song-group
+              *ngFor="let group of vm.state.groupedSongs; trackBy: trackByGroup"
+              [group]="group"
+              [sortBy]="vm.state.sortBy"
+              (songSelect)="onSongSelect($event)">
+            </app-song-group>
+          </div>
+        </div>
+      </div>
+    </div>
+  </mat-drawer-content>
 </mat-drawer-container>

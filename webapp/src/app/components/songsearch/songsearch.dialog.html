@@ -1,7 +1,42 @@
-<h2 mat-dialog-title>Disc Titles</h2>
-<mat-dialog-content>
-    @for (item of data.content; track item) {
-        <p>{{item}}</p>
+<h2 mat-dialog-title>
+    @if (data.sortBy == 'title') {
+        {{ data.songData.title }} by {{data.songData.artist}}
+    } @else {
+        {{ data.songData.artist }} - {{data.songData.title}}
     }
-    
+</h2>
+<mat-dialog-content>
+    @if (filteredDiscs.length > 0) {
+        <div class="disc-list">
+            @for (discData of filteredDiscs; track discData.disc.id) {
+                <div class="disc-item">
+                    <div class="disc-info">
+                        <span class="disc-title">{{discData.disc.fulltitle}}</span>
+                    </div>
+                    <div class="disc-actions">
+                        <button 
+                            mat-raised-button 
+                            [color]="discData.isAvailable ? 'primary' : ''"
+                            [disabled]="!discData.isAvailable || isLoading"
+                            (click)="mountGame(discData)"
+                            class="mount-button">
+                            @if (isLoading) {
+                                Mounting...
+                            } @else {
+                                Mount
+                            }
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    } @else {
+        <p class="no-discs-message">
+            @if (data.filterAvailableOnly) {
+                No available discs found for this song.
+            } @else {
+                No discs found for this song.
+            }
+        </p>
+    }
 </mat-dialog-content>

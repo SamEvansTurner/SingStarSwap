@@ -1,0 +1,89 @@
+.disc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  margin-bottom: 8px;
+}
+
+.disc-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background-color: #fafafa;
+  transition: background-color 0.2s ease;
+}
+
+.disc-item:hover {
+  background-color: #f5f5f5;
+}
+
+.disc-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.disc-title {
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.disc-actions {
+  display: flex;
+  align-items: center;
+  margin-left: 16px;
+}
+
+.mount-button {
+  min-width: 80px;
+  height: 36px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.mount-button:disabled {
+  background-color: #f5f5f5 !important;
+  color: #9e9e9e !important;
+  cursor: not-allowed;
+}
+
+.no-discs-message {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  padding: 24px;
+  margin: 0;
+}
+
+/* Dialog content styling */
+mat-dialog-content {
+  padding: 16px 24px;
+  max-height: none;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .disc-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  
+  .disc-actions {
+    margin-left: 0;
+    justify-content: center;
+  }
+  
+  .mount-button {
+    width: 100%;
+  }
+}

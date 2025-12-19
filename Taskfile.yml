@@ -33,8 +33,3 @@ tasks:
         - rm -rf server/static/*
         - rm -rf dist
         - rm -rf bin
-
-    # generate:
-    #     desc: Generate image to ascii files
-    #     cmds:
-    #     - TODO

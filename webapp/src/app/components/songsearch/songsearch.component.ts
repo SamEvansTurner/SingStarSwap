@@ -1,162 +1,287 @@
-import { Component, ViewChild, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatSlideToggleChange, MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatCardModule } from '@angular/material/card';
-import { DiscID, SongLocations, SongsDB } from '../../data/songs-data.model';
-import { SongsDataService } from '../../services/songs.data.service';
-import { MatButtonToggleChange, MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatButtonModule } from '@angular/material/button';
-import { asyncScheduler, BehaviorSubject, filter, Observable } from 'rxjs';
-import { FormsModule } from '@angular/forms';
-import { SongSearchDialog } from './songsearch.dialog';
-import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
+import { MatDialog } from '@angular/material/dialog';
+import { 
+  BehaviorSubject, 
+  combineLatest, 
+  Observable, 
+  Subject, 
+  takeUntil, 
+  map, 
+  catchError, 
+  of, 
+  startWith,
+  shareReplay
+} from 'rxjs';
+
+// Services
+import { SongsDataService } from '../../services/songs.data.service';
 import { GamesDataService } from '../../services/games.data.service';
+import { SongProcessingService } from '../../services/song-processing.service';
+import { SongCacheService } from '../../services/song-cache.service';
+import { ErrorHandlingService } from '../../services/error-handling.service';
+
+// Models
+import { SongsDB, SongLocations } from '../../data/songs-data.model';
 import { GameData } from '../../data/game-data.model';
+import { SongSearchState, SongSearchViewModel, initialSongSearchState } from '../../data/song-search-state.model';
+
+// Child Components
+import { SongFiltersComponent } from './song-filters/song-filters.component';
+import { LetterNavigationComponent } from './letter-navigation/letter-navigation.component';
+import { SongGroupComponent } from './song-group/song-group.component';
+
+// Dialog
+import { SongSearchDialog } from './songsearch.dialog';
 
 @Component({
   selector: 'app-songsearch',
   standalone: true,
-  imports: [MatExpansionModule, MatButtonToggleModule, FormsModule, MatSidenavModule, MatCardModule, MatButtonModule, MatSlideToggleModule],
+  imports: [
+    CommonModule,
+    MatSidenavModule,
+    MatButtonModule,
+    SongFiltersComponent,
+    LetterNavigationComponent,
+    SongGroupComponent
+  ],
   templateUrl: './songsearch.component.html',
-  styleUrls: ['./songsearch.component.css']
+  styleUrls: ['./songsearch.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SongsearchComponent implements OnInit {
-  @ViewChild('settingsdrawer') settingsdrawer!: MatDrawer;
+export class SongsearchComponent implements OnInit, OnDestroy {
   
-  data$!: Observable<SongsDB>;
-  gameData$!: Observable<Array<GameData>>;
-  songList: SongLocations[] = [];
-  songData!: Map<string, SongLocations>;
-  countryFilter: string[] = [];
+  // State management
+  private stateSubject = new BehaviorSubject<SongSearchState>(initialSongSearchState);
+  private destroy$ = new Subject<void>();
 
-  groupedItems: { letter: string, items: SongLocations[] }[] = [];
-  letterArray: string[] = [];
+  // Data storage
+  private currentSongsData: SongsDB = {};
+  private currentGameData: GameData[] = [];
 
-  songListSubject : BehaviorSubject<SongLocations[]> = new BehaviorSubject<SongLocations[]>([]);
-  songList$ = this.songListSubject.asObservable().pipe(filter((data): data is SongLocations[] => data !== null));
+  // Main view model observable
+  vm$: Observable<SongSearchViewModel> = this.stateSubject.pipe(
+    map(state => this.createViewModel(state)),
+    shareReplay(1)
+  );
 
-  sortByKeySubject: BehaviorSubject<keyof SongLocations> = new BehaviorSubject<keyof SongLocations>('artist');
-  sortByKey$ = this.sortByKeySubject.asObservable().pipe(filter((data): data is keyof SongLocations => data !== null));
-
-  filterByAvailableSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
-  filterByAvailable$ = this.filterByAvailableSubject.asObservable().pipe(filter((data): data is boolean => data !== null));
-
-  constructor(private dataService: SongsDataService, private cdRef: ChangeDetectorRef, private dialog: MatDialog, private gamesDataService: GamesDataService) {}
+  constructor(
+    private songsDataService: SongsDataService,
+    private gamesDataService: GamesDataService,
+    private songProcessingService: SongProcessingService,
+    private cacheService: SongCacheService,
+    private errorHandlingService: ErrorHandlingService,
+    private dialog: MatDialog
+  ) {}
 
   ngOnInit(): void {
-    this.data$  = this.dataService.songsData$;
-    this.data$.subscribe((data) => {
-      this.createSongListFromDiscs(data);
-    });
-
-    this.gameData$ = this.gamesDataService.gameData$;
-    this.gameData$.subscribe((data) => {
-      this.songListSubject.next(this.buildAndFilterSongList.bind(this)());
-    });
-
-    this.songList$.subscribe((data) => {
-      this.sortData.bind(this)();
-    })
-
-    this.sortByKey$.subscribe((data) => {
-      this.sortData.bind(this)();
-    })
-
-    this.filterByAvailable$.subscribe((data) => {
-      this.songListSubject.next(this.buildAndFilterSongList.bind(this)());
-    })
+    this.initializeDataStream();
   }
 
-  private createSongListFromDiscs(data: SongsDB): void {
-    this.songData = new Map<string, SongLocations>();
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.stateSubject.complete();
+  }
 
-    Object.values(data).forEach((disc) => {
-      if (this.countryFilter.length === 0 || this.countryFilter.includes(disc.country)) {
-        disc.songlist.forEach((song) => {
-          const songKey = `${song.artist}${song.title}`;
-          const discInfo = { id: disc.id, title: `${disc.title}`, fulltitle: `${disc.title} (${disc.country}) [${disc.platform}]` };
-          if (this.songData.has(songKey)) {
-            this.songData.get(songKey)!.discids.push(discInfo);
-          } else {
-            this.songData.set(songKey, { artist: song.artist, title: song.title, discids: [discInfo] });
-          }
+  // Event handlers
+  onSortChange(sortBy: 'artist' | 'title'): void {
+    this.updateState({ sortBy });
+    this.processData();
+  }
+
+  onFilterChange(showAvailableOnly: boolean): void {
+    this.updateState({ showAvailableOnly });
+    this.processData();
+  }
+
+  onSongSelect(song: SongLocations): void {
+    const currentState = this.stateSubject.value;
+    this.openSongDialog(song, currentState.showAvailableOnly, currentState.sortBy);
+  }
+
+  onLetterClick(letter: string): void {
+    this.scrollToLetter(letter);
+  }
+
+  onSettingsToggle(drawer: MatDrawer): void {
+    drawer.toggle();
+  }
+
+  // Public method for template
+  processData(): void {
+    this.processDataInternal();
+  }
+
+  // TrackBy functions for performance
+  trackByGroup(index: number, group: any): string {
+    return group.letter;
+  }
+
+  // Private methods
+  private initializeDataStream(): void {
+    // Combine data sources with error handling
+    const songsData$ = this.songsDataService.songsData$.pipe(
+      catchError(error => {
+        this.handleError('song-load', error);
+        return of({} as SongsDB);
+      })
+    );
+
+    const gameData$ = this.gamesDataService.gameData$.pipe(
+      catchError(error => {
+        this.handleError('game-data', error);
+        return of([] as GameData[]);
+      })
+    );
+
+    // React to data changes
+    combineLatest([songsData$, gameData$])
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(([songsData, gameData]) => {
+        this.currentSongsData = songsData;
+        this.currentGameData = gameData;
+        this.updateState({ isLoading: true, error: null });
+        this.processDataInternal(songsData, gameData);
+      });
+  }
+
+  private processDataInternal(songsData?: SongsDB, gameData?: GameData[]): void {
+    try {
+      const currentState = this.stateSubject.value;
+      
+      // Use provided data or current stored data
+      const songs = songsData || this.currentSongsData;
+      const games = gameData || this.currentGameData;
+
+      // Check cache first
+      const cacheKey = this.cacheService.generateKey({
+        sortBy: currentState.sortBy,
+        showAvailableOnly: currentState.showAvailableOnly,
+        songsCount: Object.keys(songs).length,
+        gamesCount: games.length
+      });
+
+      const cached = this.cacheService.get<any>(cacheKey);
+      if (cached) {
+        this.updateState({
+          ...cached,
+          isLoading: false,
+          isDataReady: true
         });
+        return;
       }
-    });
-  }
 
-  private buildLetterArray(): void {
-    const firstLetters = new Set<string>();
-    this.songList.forEach((song) => {
-      const value = song[this.sortByKeySubject.value];
-      if (typeof value === 'string') {
-        const firstChar = value.charAt(0).toUpperCase();
-        firstLetters.add(firstChar);
-      }
-    });
-    this.letterArray = Array.from(firstLetters).sort();
-  }
+      // Process data
+      const availableGameIds = new Set(
+        games
+          .map(game => game.gameSerial)
+          .filter(serial => serial !== null && serial !== undefined)
+      );
 
-  private groupItems(): void {
-    this.groupedItems = this.letterArray.map((letter) => ({
-      letter,
-      items: this.songList.filter((item) => {
-        const value = item[this.sortByKeySubject.value];
-        return typeof value === 'string' && value.charAt(0).toUpperCase() === letter;
-      }),
-    }));
-  }
+      const result = this.songProcessingService.processData(
+        songs,
+        availableGameIds,
+        currentState.sortBy,
+        currentState.showAvailableOnly
+      );
 
-  private buildAndFilterSongList(): SongLocations[] {
-    if (!this.songData) return [];
-    if (!this.filterByAvailableSubject.value) return Array.from(this.songData.values());
- 
-    let retArray = Array.from(this.songData.values()).filter( (value, index) => {
-      return value.discids.some(item => (this.gamesDataService.getData().map(item => item.gameSerial ?? '')).includes(item.id));
-    });
-    return retArray;
-  }
+      const newState: Partial<SongSearchState> = {
+        songs: result.songs,
+        groupedSongs: result.groupedSongs,
+        letterIndex: result.letterIndex,
+        isLoading: false,
+        isDataReady: true,
+        error: null,
+        totalSongs: result.songs.length,
+        availableSongs: currentState.showAvailableOnly 
+          ? result.songs.length 
+          : this.songProcessingService.filterByAvailability(result.songs, availableGameIds).length
+      };
 
-  sortOrderToggle(event: MatButtonToggleChange): void {
-    this.sortByKeySubject.next(event.value as keyof SongLocations);
-  }
+      // Cache the result
+      this.cacheService.set(cacheKey, {
+        songs: newState.songs,
+        groupedSongs: newState.groupedSongs,
+        letterIndex: newState.letterIndex,
+        totalSongs: newState.totalSongs,
+        availableSongs: newState.availableSongs
+      });
 
-  filterAvailableToggle(event: MatSlideToggleChange): void {
-    this.filterByAvailableSubject.next(event.checked as boolean);
-  }
+      this.updateState(newState);
 
-  private sortData(): void {
-    this.songList = this.songListSubject.value.sort((a, b) => {
-      const valueA = String(a[this.sortByKeySubject.value]);
-      const valueB = String(b[this.sortByKeySubject.value]);
-      return valueA.localeCompare(valueB);
-    });
-    this.buildLetterArray();
-    this.groupItems();
-    if (this.settingsdrawer) {
-      this.settingsdrawer.close();
+    } catch (error) {
+      this.handleError('processing', error);
     }
+  }
+
+  private updateState(partial: Partial<SongSearchState>): void {
+    const currentState = this.stateSubject.value;
+    this.stateSubject.next({ ...currentState, ...partial });
+  }
+
+  private createViewModel(state: SongSearchState): SongSearchViewModel {
+    return {
+      state,
+      hasData: state.songs.length > 0,
+      isEmpty: !state.isLoading && state.songs.length === 0,
+      showError: state.error?.hasError === true,
+      showLoading: state.isLoading,
+      showContent: state.isDataReady && !state.isLoading && state.songs.length > 0
+    };
+  }
+
+  private handleError(context: string, error: any): void {
+    this.errorHandlingService.logError(context, error);
     
+    let errorState;
+    switch (context) {
+      case 'song-load':
+        errorState = this.errorHandlingService.handleSongLoadError(error);
+        break;
+      case 'game-data':
+        errorState = this.errorHandlingService.handleGameDataError(error);
+        break;
+      case 'processing':
+        errorState = this.errorHandlingService.handleProcessingError(error);
+        break;
+      default:
+        errorState = this.errorHandlingService.handleSongLoadError(error);
+    }
+
+    this.updateState({
+      error: errorState,
+      isLoading: false,
+      isDataReady: false
+    });
   }
 
-  scrollTo(letter: string): void {
+  private scrollToLetter(letter: string): void {
     const element = document.getElementById(letter);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+    const songsContainer = document.querySelector('.songs-container');
+    if (element && songsContainer) {
+      const containerRect = songsContainer.getBoundingClientRect();
+      const elementRect = element.getBoundingClientRect();
+      const offset = elementRect.top - containerRect.top + songsContainer.scrollTop;
+      (songsContainer as HTMLElement).scrollTo({
+        top: offset,
+        behavior: 'smooth'
+      });
     }
   }
 
-  private discAvailable(disc: DiscID) {
-    if (!this.filterByAvailableSubject.value) return true
-    return this.gamesDataService.getData().map(item => item.gameSerial ?? '').includes(disc.id)
-  }
-
-  getTitles(song: SongLocations): string[] {
-    return song.discids.filter(disc => this.discAvailable(disc)).map(disc => disc.fulltitle);  // Return an array of titles
-  }
-
-  openDialog(input : SongLocations) {
-    let dialogRef = this.dialog.open(SongSearchDialog, {height:"30%", width:"30%", data: {content: this.getTitles(input)}}, )
+  private openSongDialog(song: SongLocations, filterAvailableOnly: boolean, sortBy: 'title' | 'artist'): void {
+    this.dialog.open(SongSearchDialog, {
+      height: '40%',
+      width: '50%',
+      maxWidth: '600px',
+      data: {
+        songData: song,
+        filterAvailableOnly,
+        sortBy
+      }
+    });
   }
 }

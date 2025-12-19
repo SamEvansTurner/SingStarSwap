@@ -1,0 +1,17 @@
+<div class="navigation-panel">
+  <a 
+    *ngIf="showSettingsButton" 
+    class="settings-button"
+    (click)="onSettingsClick()"
+    title="Settings">
+    ⚙
+  </a>
+  
+  <a 
+    *ngFor="let letter of letters; trackBy: trackByLetter" 
+    class="letter-link"
+    (click)="onLetterClick(letter)"
+    [title]="'Go to ' + letter">
+    {{ letter }}
+  </a>
+</div>

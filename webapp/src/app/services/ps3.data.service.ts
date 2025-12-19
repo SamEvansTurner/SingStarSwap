@@ -52,7 +52,6 @@ export class PS3DataService {
       var domParser = new DOMParser();
       var xmlDocument = domParser.parseFromString(sanitizedStr, 'text/xml');
       var ps3Segment = xmlDocument.querySelector("V[id=seg_wm_ps3_items]");
-      //We only need the first entry with an action - this is an iso file that we can use to force the PS3 to recognize a PS2 disk inserted.
       var disks = ps3Segment?.querySelectorAll("T");
       disks?.forEach((item, iterator) => {
         var mountURL = item.querySelector("P[key=module_action]")?.innerHTML ?? '';
@@ -66,7 +65,8 @@ export class PS3DataService {
             platform: Platforms.PS3,
             name: title + '\n',
             mountUrl: encodeURI(this.ps3Address + mountURL),
-            gameSerial: serial ? serial[1].replace(/(....)/, "$1-") : ''
+            gameSerial: serial ? serial[1].replace(/(....)/, "$1-") : '',
+            imageUrl: this.ps3Address + icon
           });
         }
       });
