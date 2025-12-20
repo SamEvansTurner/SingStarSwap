@@ -1,3 +1,11 @@
+.drawer-container {
+  height: 86dvh;
+  max-height: 86dvh;
+  width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
 .flex-container {
   display:flex;
   flex-direction: row;

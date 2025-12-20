@@ -3,5 +3,11 @@ mat-tab {
 }
 
 .singstarswap {
-    height: 5dvh;
+    height: 8dvh;
+}
+
+.brand-logo {
+    display: block;
+    margin: auto;
+    height: 100%;
 }
