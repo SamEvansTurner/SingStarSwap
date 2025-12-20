@@ -1,10 +1,7 @@
 # About
-
-
-# Installation
-
-
-# Pre-requisites
+## Installation
+## Building
+### Pre-requisites
 
 - Go v1.22.6 or higher
 - Taskfile v3.37.2 or higher
@@ -13,10 +10,10 @@
 - Angular 18.1.4 or higher
 - Access to Unix Tools on PATH (rm, etc.) - Can be installed from Git for Windows installer on Windows.
 
-# Build the app
+### Build the app
 
 `$ task build`
 
-# Run the app
+### Run the app
 
 `$ task run`
