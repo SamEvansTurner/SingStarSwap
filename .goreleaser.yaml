@@ -38,7 +38,7 @@ archives:
         
 dockers_v2:
   - images:
-      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/singstarswap"
+      - "ghcr.io/{{ tolower .Env.GITHUB_REPOSITORY_OWNER }}/singstarswap"
     tags:
       - "v{{ .Version }}"
       - "v{{ .Major }}.{{ .Minor }}"
