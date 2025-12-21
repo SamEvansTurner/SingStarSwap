@@ -4,6 +4,7 @@ import { ConfigService } from './config.service';
 import { SongsDataService } from './songs.data.service';
 import { GameData, Platforms } from '../data/game-data.model';
 import { PS3RequestService } from './ps3-requestsservice.service';
+import { buildSafeUrl, sanitizePath } from '../utils/url-utils';
 
 @Injectable({
   providedIn: 'root'
@@ -21,10 +22,10 @@ export class PS3DataService {
     configService.config.subscribe(
       data => {
         if (data) {
-          this.ps3Address = "http://" + data?.PS3.address;
-          this.apiUrl = "http://" + data?.PS3.address + "" + data?.PS3.ps3path;
+          this.ps3Address = buildSafeUrl(data?.PS3.address);
+          this.apiUrl = buildSafeUrl(data?.PS3.address, sanitizePath(data?.PS3.ps3path));
           this.titleFilter = data?.PS3.titlefilter;
-          this.ps3ISODataXMLURL = "http://" + data?.PS3.address + "/dev_hdd0/xmlhost/game_plugin/mygames.xml";
+          this.ps3ISODataXMLURL = buildSafeUrl(data?.PS3.address, '/dev_hdd0/xmlhost/game_plugin/mygames.xml');
           this.fetchPS3ISOData()
         }
       }
@@ -54,19 +55,19 @@ export class PS3DataService {
       var ps3Segment = xmlDocument.querySelector("V[id=seg_wm_ps3_items]");
       var disks = ps3Segment?.querySelectorAll("T");
       disks?.forEach((item, iterator) => {
-        var mountURL = item.querySelector("P[key=module_action]")?.innerHTML ?? '';
+        var mountURL = item.querySelector("P[key=module_action]")?.textContent ?? ''; // Use textContent to prevent XSS
         var keyURL = mountURL;
-        var title = item.querySelector("P[key=title]")?.innerHTML ?? '';
-        var icon = item.querySelector("P[key=icon]")?.innerHTML ?? '';
+        var title = item.querySelector("P[key=title]")?.textContent ?? ''; // Use textContent to prevent XSS
+        var icon = item.querySelector("P[key=icon]")?.textContent ?? ''; // Use textContent to prevent XSS
         var serial = /([^/]+).JPG\/?$/.exec(icon)
         if (title.includes(this.titleFilter)) {
           this.gameDataSubject.next({
-            key: this.ps3Address + keyURL.replace("/mount_ps3/","/"),
+            key: buildSafeUrl(this.ps3Address, keyURL.replace("/mount_ps3/","/")),
             platform: Platforms.PS3,
             name: title + '\n',
-            mountUrl: encodeURI(this.ps3Address + mountURL),
+            mountUrl: buildSafeUrl(this.ps3Address, mountURL),
             gameSerial: serial ? serial[1].replace(/(....)/, "$1-") : '',
-            imageUrl: this.ps3Address + icon
+            imageUrl: buildSafeUrl(this.ps3Address, icon)
           });
         }
       });

@@ -5,6 +5,19 @@
   <title>Webapp</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!-- Security Headers -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <meta http-equiv="Referrer-Policy" content="no-referrer">
+  <!-- CSP adjusted for local network usage - allows HTTP connections to PS3 -->
+  <meta http-equiv="Content-Security-Policy" 
+        content="default-src 'self'; 
+                 connect-src 'self' http://* https://*; 
+                 img-src 'self' data: http://* https://*; 
+                 style-src 'self' 'unsafe-inline'; 
+                 font-src 'self' data:;">
+  
   <!-- For all browsers -->
   <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16x16.png">

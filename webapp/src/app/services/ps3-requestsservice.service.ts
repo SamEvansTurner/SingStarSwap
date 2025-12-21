@@ -1,14 +1,15 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, of } from 'rxjs';
-import { concatMap, catchError, tap, filter } from 'rxjs/operators';
+import { Observable, BehaviorSubject, of, Subscription, throwError, timer } from 'rxjs';
+import { concatMap, catchError, tap, filter, delay, switchMap, retry, timeout } from 'rxjs/operators';
 import { GameData, Platforms } from '../data/game-data.model';
 import { ConfigService } from './config.service';
+import { buildSafeUrl } from '../utils/url-utils';
 
 @Injectable({
   providedIn: 'root'
 })
-export class PS3RequestService {
+export class PS3RequestService implements OnDestroy {
 
   ps3Address: string = "";
   unmountURL: string = "";
@@ -20,8 +21,11 @@ export class PS3RequestService {
   private ps2ISODataSubject = new BehaviorSubject<string | null>(null);
   public ps2ISOMountURL$ = this.ps2ISODataSubject.asObservable().pipe(filter((data): data is string => data !== null));
 
+  private subscriptions = new Subscription();
+
   constructor(private http: HttpClient, private configService: ConfigService) {
-    this.requestQueue$.pipe(
+    this.subscriptions.add(
+      this.requestQueue$.pipe(
       concatMap((requestData) => {
           if (!requestData) return of(null); 
           return this.sendRequest(requestData.url).pipe(
@@ -34,23 +38,34 @@ export class PS3RequestService {
             })
           );
       })
-    ).subscribe(); 
+      ).subscribe()
+    );
 
-    configService.config.subscribe(
+    this.subscriptions.add(
+      configService.config.subscribe(
       data => {
         if (data) {
-          this.ps3Address = "http://" + data?.PS3.address;
-          this.unmountURL = this.ps3Address + "/mount_ps3/unmount"
-          this.ps2ISODataXMLURL = "http://" + data?.PS3.address + "/dev_hdd0/xmlhost/game_plugin/mygames.xml";
+          this.ps3Address = buildSafeUrl(data?.PS3.address);
+          this.unmountURL = buildSafeUrl(this.ps3Address, "/mount_ps3/unmount");
+          this.ps2ISODataXMLURL = buildSafeUrl(data?.PS3.address, "/dev_hdd0/xmlhost/game_plugin/mygames.xml");
           this.fetchPS2ISOData();
         }
-      });
+      })
+    );
 
-    this.ps2ISOMountURL$.subscribe(
+    this.subscriptions.add(
+      this.ps2ISOMountURL$.subscribe(
       data => {
         this.ps2DiscMountURL = data;
       }
-    )
+      )
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+    this.requestQueue$.complete();
+    this.ps2ISODataSubject.complete();
   }
 
   // Method to enqueue a request and return the subject to the component
@@ -64,63 +79,62 @@ export class PS3RequestService {
     return responseSubject.asObservable().pipe(filter(data => data !== null));
   }
 
-  loadDisc(game: GameData) {
+  loadDisc(game: GameData): void {
     if (!this.unmountURL) {
-      console.error("failed to unmont")
-      return
+      console.error("failed to unmount");
+      return;
     }
-    this.fetchHttp(this.unmountURL).subscribe(
-      { 
-        next: () => {
-          if(game.platform == Platforms.PS2) {
-            setTimeout(this.loadPS2Disc.bind(this, game), 1000);
-          } else {
-            setTimeout(this.loadPS3Disc.bind(this, game), 1000);
-          }
-        },
-        error: (err) => {
-          console.error("error in unmounting: ", err);
-        }
-      }
-    )
 
+    // Chain operations with RxJS operators instead of setTimeout callbacks
+    this.fetchHttp(this.unmountURL).pipe(
+      delay(1000), // Replace setTimeout with RxJS delay
+      switchMap(() => {
+        // Choose appropriate loading method based on platform
+        if (game.platform === Platforms.PS2) {
+          return this.loadPS2DiscRx(game);
+        } else {
+          return this.loadPS3DiscRx(game);
+        }
+      })
+    ).subscribe({
+      next: () => {
+        // Disc loading completed successfully
+      },
+      error: (err) => {
+        console.error("error in disc loading:", err);
+      }
+    });
   }
 
-  private loadPS2Disc(game: GameData) {
+  /**
+   * Load PS2 disc using Observable chain (no callbacks)
+   */
+  private loadPS2DiscRx(game: GameData): Observable<any> {
     if (!this.ps2DiscMountURL) {
-      console.error("PS2 Disc URL is unset")
-      return
+      console.error("PS2 Disc URL is unset");
+      return throwError(() => new Error("PS2 Disc URL is unset"));
     }
-    this.fetchHttp(game.mountUrl).subscribe(
-      {
-        next: () => {
-          this.fetchHttp(this.ps2DiscMountURL).subscribe(
-            {
-              next: () => {
-              },
-              error: (err) => {
-                console.error("error in ps2 disc mount: ", err);
-              }
-            }
-          )
-        },
-        error: (err) => {
-          console.error("error in ps2 data mount: ", err);
-        }
-      }
-    )
+
+    return this.fetchHttp(game.mountUrl).pipe(
+      delay(100), // Small delay between mounts
+      switchMap(() => this.fetchHttp(this.ps2DiscMountURL)),
+      catchError((err) => {
+        console.error("error in ps2 disc mount:", err);
+        return throwError(() => err);
+      })
+    );
   }
 
-  private loadPS3Disc(game: GameData) {
-    this.fetchHttp(game.mountUrl).subscribe(
-      {
-        next: () => {
-        },
-        error: (err) => {
-          console.error("error in ps3 disc mount: ", err);
-        }
-      }
-    )
+  /**
+   * Load PS3 disc using Observable (no callbacks)
+   */
+  private loadPS3DiscRx(game: GameData): Observable<any> {
+    return this.fetchHttp(game.mountUrl).pipe(
+      catchError((err) => {
+        console.error("error in ps3 disc mount:", err);
+        return throwError(() => err);
+      })
+    );
   }
 
   private fetchPS2ISOData() {
@@ -149,14 +163,28 @@ export class PS3RequestService {
       var diskMountURL = ps2Segment?.querySelector("P[key=module_action]")
       var content = diskMountURL?.textContent;
       if (content) {
-        this.ps2ISODataSubject.next(this.ps3Address + content);
+        this.ps2ISODataSubject.next(buildSafeUrl(this.ps3Address, content));
       }
     }
   }
 
-  // Send the HTTP request and return the observable
+  // Send the HTTP request with timeout and retry logic
   private sendRequest(url: string): Observable<any> {
-    return this.http.get(url, {responseType: 'text'});  // No error handling here; let the error propagate naturally
+    return this.http.get(url, {responseType: 'text'}).pipe(
+      timeout(10000), // 10 second timeout
+      retry({
+        count: 2, // Retry up to 2 times (3 total attempts)
+        delay: (error, retryCount) => {
+          // Exponential backoff: 1s, 2s
+          console.log(`Request to ${url} failed, retry attempt ${retryCount}...`);
+          return timer(Math.pow(2, retryCount - 1) * 1000);
+        }
+      }),
+      catchError(error => {
+        console.error(`Request to ${url} failed after retries:`, error);
+        return throwError(() => error);
+      })
+    );
   }
 
 }

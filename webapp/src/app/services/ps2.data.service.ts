@@ -4,6 +4,7 @@ import { ConfigService } from './config.service';
 import { SongsDataService } from './songs.data.service';
 import { GameData, Platforms, GameData_EMPTY } from '../data/game-data.model';
 import { PS3RequestService } from './ps3-requestsservice.service';
+import { buildSafeUrl, sanitizePath } from '../utils/url-utils';
 
 @Injectable({
   providedIn: 'root'
@@ -24,8 +25,8 @@ export class PS2DataService {
     configService.config.subscribe(
       data => {
         if (data) {
-          this.ps3Address = "http://" + data?.PS3.address;
-          this.apiUrl = "http://" + data?.PS3.address + "" + data?.PS3.ps2path;
+          this.ps3Address = buildSafeUrl(data?.PS3.address);
+          this.apiUrl = buildSafeUrl(data?.PS3.address, sanitizePath(data?.PS3.ps2path));
           this.titlefilter = data?.PS3.titlefilter;
           this.fetchSingStarGameData();
           this.ps2GameData$.subscribe({
@@ -55,7 +56,8 @@ export class PS2DataService {
     var tableObject = htmlElement.querySelector("table[id=files]")
     var dirs = tableObject?.querySelectorAll("a[class=d]")
     dirs?.forEach((item, iterator) => {
-      if (item.innerHTML.toLowerCase().includes(this.titlefilter.toLowerCase())) {
+      const itemText = item.textContent || ''; // Use textContent to prevent XSS
+      if (itemText.toLowerCase().includes(this.titlefilter.toLowerCase())) {
         var cols = item.parentElement?.parentElement?.querySelectorAll("td")
         var keyRef = cols?.item(0).querySelector("a")?.getAttribute("href") as string
         var keyR = this.apiUrl + "/" + keyRef
@@ -67,8 +69,8 @@ export class PS2DataService {
           this.interimData.set(encodeURI(keyR), {
             key: keyR,
             platform: Platforms.PS2,
-            name: item.innerHTML + '\n',
-            mountUrl: encodeURI(mountLink.replace("mount.ps3", "mount.ps2"))});
+            name: itemText + '\n', // Use textContent to prevent XSS
+            mountUrl: buildSafeUrl(this.ps3Address, mountLinkRef.replace("mount.ps3", "mount.ps2"))});
           
         }
       }
@@ -96,9 +98,10 @@ export class PS2DataService {
     var htmlElement = domParser.parseFromString(data, 'text/html');
     var gameIDs = htmlElement.querySelectorAll("a.w");
     gameIDs.forEach( gameID => {
-      var matches = this.ps2SerialRegex.exec(gameID.innerHTML);
+      const serialText = gameID.textContent || ''; // Use textContent to prevent XSS
+      var matches = this.ps2SerialRegex.exec(serialText);
       if (matches) {
-        ourGame.gameSerial = gameID.innerHTML.replace("_", "-").replace(".", "");
+        ourGame.gameSerial = serialText.replace("_", "-").replace(".", ""); // Use textContent to prevent XSS
         ourGame.imageUrl = this.ps2CoverDatabaseURL.replace("${serial}", ourGame.gameSerial);
       }
       

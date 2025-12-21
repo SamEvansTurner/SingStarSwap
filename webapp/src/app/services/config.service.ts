@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, filter, Observable, tap } from 'rxjs';
+import { BehaviorSubject, filter, Observable, tap, timer, throwError } from 'rxjs';
+import { retry, timeout, catchError } from 'rxjs/operators';
 import { Config, SaveConfigResponse } from '../data/config-data.model';
 import { Location } from '@angular/common';
 
@@ -20,20 +21,33 @@ export class ConfigService {
   }
 
   private loadConfig(): void {
-    this.http.get(`${this.location.path(false)}/api/config`, {responseType: 'json'}).subscribe(
+    this.http.get(`${this.location.path(false)}/api/config`, {responseType: 'json'}).pipe(
+      timeout(5000), // 5 second timeout for config loading
+      retry({
+        count: 2, // Retry up to 2 times (3 total attempts)
+        delay: (error, retryCount) => {
+          console.log(`Config load failed, retry attempt ${retryCount}...`);
+          return timer(1000 * retryCount); // 1s, 2s backoff
+        }
+      })
+    ).subscribe(
         { 
           next: (response) => {
             this.configSubject.next(response as Config);
             this.configLoadedFromServerSubject.next(true);
           },
-          error: (err) => {
-            //FOR DEBUGGING: just set default values
+        error: (err) => {
+            // Development fallback: When running with `ng serve` without backend server,
+            // use default configuration for local development and testing.
+            // This allows the frontend to be developed independently of the backend.
+            console.warn('Failed to load configuration from server, using development defaults:', err);
+            
             this.configSubject.next({
               server: {
                 port: 4200
               },
               PS3: {
-                address: "192.168.1.2",
+                address: "192.168.21.30",
                 ps2path: "/dev_hdd0/SINGSTAR",
                 titlefilter: "SingStar",
                 ps3path: "/net0/PS3ISO"
@@ -51,6 +65,7 @@ export class ConfigService {
 
   saveConfig(config: Config): Observable<SaveConfigResponse> {
     return this.http.put<SaveConfigResponse>(`${this.location.path(false)}/api/config`, config).pipe(
+      timeout(5000), // 5 second timeout for config save
       tap((response: SaveConfigResponse) => {
         if (response.success) {
           // Update the config subject with new values
@@ -64,6 +79,10 @@ export class ConfigService {
             window.location.reload();
           }
         }
+      }),
+      catchError(error => {
+        console.error('Failed to save configuration:', error);
+        return throwError(() => error);
       })
     );
   }

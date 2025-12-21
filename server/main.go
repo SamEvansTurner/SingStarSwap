@@ -104,18 +104,6 @@ func ReadConfig() (*Config, error) {
 	return _settings, nil
 }
 
-func returnConfig(w http.ResponseWriter, r *http.Request) {
-	// Convert your config to JSON
-	configJSON, err := json.Marshal(settings.PS3Config)
-	if err != nil {
-		http.Error(w, "Error encoding config", http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(configJSON)
-}
-
 // Validation functions
 func validatePort(port int) error {
 	if port < 1 || port > 65535 {
