@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Set up Go
@@ -28,6 +28,11 @@ jobs:
           go-version: stable
       - name: Install Task
         uses: go-task/setup-task@v1
+      - name: Install node
+        uses: actions/setup-node@v6
+      - name: Install dependencies
+        run: npm ci
+        working-directory: webapp
       #- name: Set up Docker
       #  uses: docker/setup-docker-action@v4
       # More assembly might be required: Docker logins, GPG, etc.
