@@ -11,7 +11,7 @@
             @for (discData of filteredDiscs; track discData.disc.id) {
                 <div class="disc-item">
                     <div class="disc-info">
-                        <span class="disc-title">{{discData.disc.fulltitle}}</span>
+                        <span class="disc-title mat-body-2">{{discData.disc.fulltitle}}</span>
                     </div>
                     <div class="disc-actions">
                         <button 
@@ -31,7 +31,7 @@
             }
         </div>
     } @else {
-        <p class="no-discs-message">
+        <p class="no-discs-message mat-body-1">
             @if (data.filterAvailableOnly) {
                 No available discs found for this song.
             } @else {

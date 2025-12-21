@@ -1,15 +1,20 @@
 <div class="server-settings-container" *ngIf="config && configLoadedFromServer">
-  <h2 class="mat-h2">Configuration</h2>
-  <h3 class="mat-h3">Server Settings</h3>
+  <h3>Configuration</h3>
+  
+  <mat-divider></mat-divider>
+  
+  <h5>Server Settings</h5>
   <form class="server-settings-form">
     <mat-form-field appearance="fill">
       <mat-label>Server Port</mat-label>
       <input matInput type="number" [(ngModel)]="config.server.port" name="serverPort" required />
-      <mat-hint>Port the server runs on (requires restart if changed)</mat-hint>
+      <mat-hint>Port the server runs on</mat-hint>
     </mat-form-field>
   </form>
 
-  <h3 class="mat-h3">PS3 Settings</h3>
+  <mat-divider></mat-divider>
+
+  <h5>PS3 Settings</h5>
   <form class="server-settings-form">
     <mat-form-field appearance="fill">
       <mat-label>PS3 IP Address</mat-label>
@@ -36,8 +41,10 @@
     </mat-form-field>
   </form>
 
+  <mat-divider *ngIf="errorMessage"></mat-divider>
+
   <div class="error-message" *ngIf="errorMessage">
-    <p>{{ errorMessage }}</p>
+    <p class="mat-body-1">{{ errorMessage }}</p>
   </div>
 
   <div class="button-container">
@@ -53,5 +60,5 @@
 
 <div class="loading-container" *ngIf="!config">
   <mat-spinner></mat-spinner>
-  <p>Loading configuration...</p>
+  <p class="mat-body-1">Loading configuration...</p>
 </div>

@@ -1,15 +1,25 @@
          
-<div class="flex-container" layout="row" flex>
+<div class="game-grid">
     @for (item of (games$ | async); track item) {
-        <mat-card class="game-card" [ngStyle]="{'min-width': gamewidth}" appearance="outlined">
+        <mat-card class="game-card" appearance="outlined">
             <mat-card-header>
                 <mat-card-title>{{item.name}}</mat-card-title>
             </mat-card-header>
-            <img mat-card-image src="{{item.imageUrl}}" alt="cover image"/>
+            <div class="image-container">
+                @if (!hasImageFailed(item.imageUrl)) {
+                    <img mat-card-image 
+                         src="{{item.imageUrl}}" 
+                         alt="cover image"
+                         (error)="onImageError(item.imageUrl)"/>
+                } @else {
+                    <div class="image-placeholder">
+                        <span class="mat-body-2">No Cover Image Found</span>
+                    </div>
+                }
+            </div>
             <mat-card-content></mat-card-content>
             <mat-card-actions>
-                <button mat-button (click)="handleClick(item)">MOUNT</button>
-                <button mat-button (click)="handleClick(item)"></button>
+                <button mat-stroked-button (click)="handleClick(item)">MOUNT</button>
             </mat-card-actions>
         </mat-card>
     }   

@@ -1,17 +1,20 @@
 <div class="navigation-panel">
-  <a 
+  <button 
     *ngIf="showSettingsButton" 
+    type="button"
     class="settings-button"
     (click)="onSettingsClick()"
-    title="Settings">
-    ⚙
-  </a>
+    title="Settings"
+    aria-label="Settings">
+    <mat-icon inline="true">settings</mat-icon>
+  </button>
   
-  <a 
+  <button 
     *ngFor="let letter of letters; trackBy: trackByLetter" 
+    type="button"
     class="letter-link"
     (click)="onLetterClick(letter)"
     [title]="'Go to ' + letter">
     {{ letter }}
-  </a>
+  </button>
 </div>

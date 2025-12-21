@@ -1,22 +1,47 @@
-* {
-    margin: 0;
-    padding: 0;
-  }
+:root {
+  /* Spacing scale - Project specific (no Material equivalent) */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
+  --spacing-3xl: 40px;
   
-  :root {
-    --primary-color: #605DC8;
-    --secondary-color: #8B89E6;
-    --accent-color: #e8e7fa;
-    --shadow-color: #E8E8E8;
-  }
+  /* Border radius scale */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
   
-  button.primary {
-    padding: 10px;
-    border: solid 1px var(--primary-color);
-    background: var(--primary-color);
-    color: white;
-    border-radius: 8px;
-  }
+  /* Transitions - Project specific (no Material equivalent) */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease-in-out;
   
+  /* Content widths for consistency */
+  --content-width-sm: 25rem; /* 400px */
+  --content-width-md: 37.5rem; /* 600px */
+  --drawer-width-min: 17.5rem; /* 280px */
+  --drawer-width-max: 25rem; /* 400px */
+}
+
+/* Shared state container styles */
+.loading-container,
+.error-container,
+.empty-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-3xl) var(--spacing-lg);
+}
+
+.error-content {
+  text-align: center;
+  max-width: var(--content-width-sm);
+  padding: var(--spacing-xl);
+  background-color: var(--mat-sys-surface);
+  border-radius: var(--mat-sys-corner-medium);
+  box-shadow: var(--mat-sys-level3);
+}
+
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

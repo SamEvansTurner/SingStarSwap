@@ -1,10 +1,12 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-letter-navigation',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MatIconModule, MatButtonModule],
   templateUrl: './letter-navigation.component.html',
   styleUrls: ['./letter-navigation.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush

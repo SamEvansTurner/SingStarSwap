@@ -1,25 +1,12 @@
 .filters-container {
-  padding: 16px;
-}
-
-.mat-h2 {
-  margin: 0.1em 0 0.5em;
-  font-size: 1.2em;
-  font-weight: 500;
+  padding: var(--spacing-lg);
 }
 
 .filter-control {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.filter-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #424242;
-  margin-bottom: 4px;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
 }
 
 mat-button-toggle-group {
@@ -31,5 +18,5 @@ mat-button-toggle {
 }
 
 mat-slide-toggle {
-  margin-top: 4px;
+  margin-top: var(--spacing-xs);
 }

@@ -1,25 +1,19 @@
 .disc-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--spacing-md);
   overflow-y: auto;
-  margin-bottom: 8px;
+  margin-bottom: var(--spacing-sm);
 }
 
 .disc-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  background-color: #fafafa;
-  transition: background-color 0.2s ease;
+  padding: var(--spacing-md);
+  transition: background-color var(--transition-fast);
 }
 
-.disc-item:hover {
-  background-color: #f5f5f5;
-}
 
 .disc-info {
   flex: 1;
@@ -28,42 +22,36 @@
 }
 
 .disc-title {
-  font-weight: 500;
-  color: #333;
-  font-size: 14px;
+  /* Material typography handled by mat-body-2 class in HTML */
   line-height: 1.4;
 }
 
 .disc-actions {
   display: flex;
   align-items: center;
-  margin-left: 16px;
 }
 
 .mount-button {
   min-width: 80px;
   height: 36px;
-  font-size: 13px;
-  font-weight: 500;
+  /* Material button handles font styling */
 }
 
 .mount-button:disabled {
-  background-color: #f5f5f5 !important;
-  color: #9e9e9e !important;
   cursor: not-allowed;
 }
 
 .no-discs-message {
+  /* Material typography handled by mat-body-1 class in HTML */
   text-align: center;
-  color: #666;
   font-style: italic;
-  padding: 24px;
+  padding: var(--spacing-xl);
   margin: 0;
 }
 
 /* Dialog content styling */
 mat-dialog-content {
-  padding: 16px 24px;
+  padding: var(--spacing-lg) var(--spacing-xl);
   max-height: none;
   overflow: hidden;
   display: flex;
@@ -71,15 +59,14 @@ mat-dialog-content {
 }
 
 /* Responsive adjustments */
-@media (max-width: 600px) {
+@media (max-width: 599.98px) {
   .disc-item {
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
+    gap: var(--spacing-sm);
   }
   
   .disc-actions {
-    margin-left: 0;
     justify-content: center;
   }
   

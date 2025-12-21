@@ -2,6 +2,8 @@ import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/
 import { CommonModule } from '@angular/common';
 import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { 
   BehaviorSubject, 
@@ -44,11 +46,13 @@ import { ServerSettingsComponent } from "./server-settings/server-settings.compo
     CommonModule,
     MatSidenavModule,
     MatButtonModule,
+    MatCardModule,
+    MatProgressSpinnerModule,
     SongFiltersComponent,
     LetterNavigationComponent,
     SongGroupComponent,
     ServerSettingsComponent
-],
+  ],
   templateUrl: './songsearch.component.html',
   styleUrls: ['./songsearch.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush

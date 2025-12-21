@@ -1,10 +1,10 @@
 .navigation-panel {
-  width: 2.5em;
-  background: #fff;
-  padding: 10px 8px;
-  border: 1px solid #ccc;
+  width: 2.5rem;
+  background: var(--mat-sys-surface);
+  padding: var(--spacing-sm) var(--spacing-sm);
+  border: 1px solid var(--mat-sys-outline);
   overflow-y: auto;
-  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--mat-sys-level2);
   box-sizing: border-box;
   flex-shrink: 0;
   scrollbar-width: thin;
@@ -12,30 +12,34 @@
 
 .settings-button,
 .letter-link {
+  background: none;
+  border: none;
+  font: inherit;
+  width: 100%;
   display: block;
-  margin: 5px 0;
+  margin: var(--spacing-xs) 0;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 1rem;
   text-align: center;
-  padding: 8px 4px;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
+  padding: var(--spacing-sm) var(--spacing-xs);
+  border-radius: var(--mat-sys-corner-small);
+  transition: background-color var(--transition-fast);
   user-select: none;
-  color: #424242;
+  color: var(--mat-sys-on-surface);
   text-decoration: none;
 }
 
 .settings-button:hover,
 .letter-link:hover {
-  background-color: #f5f5f5;
-  color: #1976d2;
+  background-color: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-primary);
 }
 
 .settings-button {
-  font-size: 18px;
-  margin-bottom: 10px;
-  border-bottom: 1px solid #e0e0e0;
-  padding-bottom: 10px;
+  font-size: 1.125rem;
+  margin-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  padding-bottom: var(--spacing-sm);
 }
 
 .letter-link {
@@ -48,46 +52,46 @@
 
 /* Scrollbar styling for webkit browsers */
 .navigation-panel::-webkit-scrollbar {
-  width: 4px;
+  width: var(--spacing-xs);
 }
 
 .navigation-panel::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--mat-sys-surface-container);
 }
 
 .navigation-panel::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 2px;
+  background: var(--mat-sys-outline-variant);
+  border-radius: var(--radius-sm);
 }
 
 .navigation-panel::-webkit-scrollbar-thumb:hover {
-  background: #a1a1a1;
+  background: var(--mat-sys-outline);
 }
 
 /* Mobile optimizations */
-@media (max-width: 768px) {
+@media (max-width: 959.98px) {
   .navigation-panel {
-    width: 3em;
-    padding: 8px 6px;
+    width: 3rem;
+    padding: var(--spacing-sm) 6px;
   }
   
   .settings-button,
   .letter-link {
-    padding: 10px 6px;
-    margin: 3px 0;
-    font-size: 14px;
+    padding: var(--spacing-sm) 6px;
+    margin: var(--spacing-xs) 0;
+    font-size: 0.875rem;
     min-height: 36px;
   }
   
   .settings-button {
-    font-size: 16px;
+    font-size: 1rem;
   }
 }
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
   .navigation-panel {
-    border: 2px solid #000;
+    border: 2px solid var(--mat-sys-on-surface);
   }
   
   .settings-button,
@@ -97,8 +101,8 @@
   
   .settings-button:hover,
   .letter-link:hover {
-    border-color: #000;
-    background-color: #000;
-    color: #fff;
+    border-color: var(--mat-sys-on-surface);
+    background-color: var(--mat-sys-on-surface);
+    color: var(--mat-sys-surface);
   }
 }

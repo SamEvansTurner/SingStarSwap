@@ -4,6 +4,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDividerModule } from '@angular/material/divider';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ConfigService } from '../../../services/config.service';
@@ -20,7 +21,8 @@ import { ServerSettingsConfirmDialogComponent } from './server-settings-confirm-
     MatInputModule,
     MatButtonModule,
     MatDialogModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatDividerModule
   ],
   templateUrl: './server-settings.component.html',
   styleUrls: ['./server-settings.component.css']

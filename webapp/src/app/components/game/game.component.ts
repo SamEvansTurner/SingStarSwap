@@ -18,28 +18,26 @@ import { MatButtonModule } from '@angular/material/button';
 export class GameComponent implements OnInit {
 
   games$! : Observable<Array<GameData>>;
-  maxwidth = 0;
-  gamewidth : number | CSSStyleValue = `${this.maxwidth}px`;
+  failedImages = new Set<string>();
 
   constructor(protected gamesDataService: GamesDataService, private ps3RequestService : PS3RequestService ) { }
 
   ngOnInit(): void {
     this.games$ = this.gamesDataService.gameData$;
-    setTimeout(() => {
-      var b = document.getElementsByClassName('game-card');
-      for (var i = 0; i < b.length; i++) {
-        var elewidth = b[i].scrollWidth; 
-        if ( elewidth > this.maxwidth) {
-          this.maxwidth = elewidth;
-          this.gamewidth = `${this.maxwidth}px`;
-        }
-      }
-
-    }, 0)
   }
 
   handleClick(item: GameData) {
     this.ps3RequestService.loadDisc(item)
+  }
+
+  onImageError(imageUrl: string | undefined) {
+    if (imageUrl) {
+      this.failedImages.add(imageUrl);
+    }
+  }
+
+  hasImageFailed(imageUrl: string | undefined): boolean {
+    return imageUrl ? this.failedImages.has(imageUrl) : true;
   }
 }
 
