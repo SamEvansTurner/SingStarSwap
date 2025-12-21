@@ -22,7 +22,7 @@ builds:
       - darwin
 
 archives:
-  - format: tar.gz
+  - formats: ['tar.gz']
     # this name template makes the OS and Arch compatible with the results of `uname`.
     name_template: >-
       {{ .ProjectName }}_
@@ -34,11 +34,11 @@ archives:
     # use zip for windows archives
     format_overrides:
       - goos: windows
-        format: zip
+        formats: ['zip']
         
 dockers_v2:
   - images:
-      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/SingStarSwap"
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/singstarswap"
     tags:
       - "v{{ .Version }}"
       - "v{{ .Major }}.{{ .Minor }}"
@@ -51,7 +51,7 @@ dockers_v2:
       "org.opencontainers.image.version": "v{{ .Version }}"
       "org.opencontainers.image.source": "{{ .GitURL }}"
       "org.opencontainers.image.licenses": "MIT"
-      
+
 changelog:
   sort: asc
   filters:

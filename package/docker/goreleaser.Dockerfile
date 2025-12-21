@@ -1,6 +1,5 @@
-FROM alpine:3
+FROM scratch
 ARG TARGETPLATFORM
-COPY $TARGETPLATFORM/SingStarSwap /bin/SingStarSwap
+COPY $TARGETPLATFORM/SingStarSwap /usr/bin/SingStarSwap
 EXPOSE 4000
-USER nobody:nobody
-ENTRYPOINT ["/bin/SingStarSwap"]
+ENTRYPOINT ["/usr/bin/SingStarSwap"]
