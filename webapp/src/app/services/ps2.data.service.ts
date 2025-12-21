@@ -24,9 +24,9 @@ export class PS2DataService {
     configService.config.subscribe(
       data => {
         if (data) {
-          this.ps3Address = "http://" + data?.address;
-          this.apiUrl = "http://" + data?.address + "" + data?.ps2path;
-          this.titlefilter = data?.titlefilter;
+          this.ps3Address = "http://" + data?.PS3.address;
+          this.apiUrl = "http://" + data?.PS3.address + "" + data?.PS3.ps2path;
+          this.titlefilter = data?.PS3.titlefilter;
           this.fetchSingStarGameData();
           this.ps2GameData$.subscribe({
             next: this.processSingStarGameFolderData.bind(this)

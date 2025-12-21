@@ -21,10 +21,10 @@ export class PS3DataService {
     configService.config.subscribe(
       data => {
         if (data) {
-          this.ps3Address = "http://" + data?.address;
-          this.apiUrl = "http://" + data?.address + "" + data?.ps3path;
-          this.titleFilter = data?.titlefilter;
-          this.ps3ISODataXMLURL = "http://" + data?.address + "/dev_hdd0/xmlhost/game_plugin/mygames.xml";
+          this.ps3Address = "http://" + data?.PS3.address;
+          this.apiUrl = "http://" + data?.PS3.address + "" + data?.PS3.ps3path;
+          this.titleFilter = data?.PS3.titlefilter;
+          this.ps3ISODataXMLURL = "http://" + data?.PS3.address + "/dev_hdd0/xmlhost/game_plugin/mygames.xml";
           this.fetchPS3ISOData()
         }
       }

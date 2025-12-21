@@ -35,6 +35,7 @@ import { SongGroupComponent } from './song-group/song-group.component';
 
 // Dialog
 import { SongSearchDialog } from './songsearch.dialog';
+import { ServerSettingsComponent } from "./server-settings/server-settings.component";
 
 @Component({
   selector: 'app-songsearch',
@@ -45,8 +46,9 @@ import { SongSearchDialog } from './songsearch.dialog';
     MatButtonModule,
     SongFiltersComponent,
     LetterNavigationComponent,
-    SongGroupComponent
-  ],
+    SongGroupComponent,
+    ServerSettingsComponent
+],
   templateUrl: './songsearch.component.html',
   styleUrls: ['./songsearch.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush

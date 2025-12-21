@@ -39,9 +39,9 @@ export class PS3RequestService {
     configService.config.subscribe(
       data => {
         if (data) {
-          this.ps3Address = "http://" + data?.address;
+          this.ps3Address = "http://" + data?.PS3.address;
           this.unmountURL = this.ps3Address + "/mount_ps3/unmount"
-          this.ps2ISODataXMLURL = "http://" + data?.address + "/dev_hdd0/xmlhost/game_plugin/mygames.xml";
+          this.ps2ISODataXMLURL = "http://" + data?.PS3.address + "/dev_hdd0/xmlhost/game_plugin/mygames.xml";
           this.fetchPS2ISOData();
         }
       });

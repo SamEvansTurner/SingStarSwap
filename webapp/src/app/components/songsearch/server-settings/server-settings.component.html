@@ -1,0 +1,57 @@
+<div class="server-settings-container" *ngIf="config && configLoadedFromServer">
+  <h2 class="mat-h2">Configuration</h2>
+  <h3 class="mat-h3">Server Settings</h3>
+  <form class="server-settings-form">
+    <mat-form-field appearance="fill">
+      <mat-label>Server Port</mat-label>
+      <input matInput type="number" [(ngModel)]="config.server.port" name="serverPort" required />
+      <mat-hint>Port the server runs on (requires restart if changed)</mat-hint>
+    </mat-form-field>
+  </form>
+
+  <h3 class="mat-h3">PS3 Settings</h3>
+  <form class="server-settings-form">
+    <mat-form-field appearance="fill">
+      <mat-label>PS3 IP Address</mat-label>
+      <input matInput type="text" [(ngModel)]="config.PS3.address" name="ps3Address" required />
+      <mat-hint>IP address of your PS3 on the network</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+      <mat-label>PS2 Path</mat-label>
+      <input matInput type="text" [(ngModel)]="config.PS3.ps2path" name="ps2path" required />
+      <mat-hint>Path on PS3 to SingStar PS2 games folder</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+      <mat-label>Title Filter</mat-label>
+      <input matInput type="text" [(ngModel)]="config.PS3.titlefilter" name="titlefilter" required />
+      <mat-hint>Filter games by title (e.g., "SingStar")</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+      <mat-label>PS3 Path</mat-label>
+      <input matInput type="text" [(ngModel)]="config.PS3.ps3path" name="ps3path" required />
+      <mat-hint>Path on PS3 to SingStar PS3 games folder</mat-hint>
+    </mat-form-field>
+  </form>
+
+  <div class="error-message" *ngIf="errorMessage">
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <div class="button-container">
+    <button mat-button (click)="onCancel()" [disabled]="!isDirty || isLoading">
+      Cancel
+    </button>
+    <button mat-raised-button color="primary" (click)="onSave()" [disabled]="!isDirty || isLoading">
+      <span *ngIf="!isLoading">Save Configuration</span>
+      <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+    </button>
+  </div>
+</div>
+
+<div class="loading-container" *ngIf="!config">
+  <mat-spinner></mat-spinner>
+  <p>Loading configuration...</p>
+</div>
