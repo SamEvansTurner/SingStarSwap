@@ -67,7 +67,7 @@ export class PS3DataService {
             name: title + '\n',
             mountUrl: buildSafeUrl(this.ps3Address, mountURL),
             gameSerial: serial ? serial[1].replace(/(....)/, "$1-") : '',
-            imageUrl: buildSafeUrl(this.ps3Address, icon)
+            imageUrl: '/api/ps3' + icon
           });
         }
       });

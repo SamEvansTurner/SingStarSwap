@@ -1,7 +1,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, of, Subscription, throwError, timer } from 'rxjs';
-import { concatMap, catchError, tap, filter, delay, switchMap, retry, timeout } from 'rxjs/operators';
+import { Observable, BehaviorSubject, of, Subscription, throwError } from 'rxjs';
+import { concatMap, catchError, tap, filter, delay, switchMap } from 'rxjs/operators';
 import { GameData, Platforms } from '../data/game-data.model';
 import { ConfigService } from './config.service';
 import { buildSafeUrl } from '../utils/url-utils';
@@ -168,20 +168,16 @@ export class PS3RequestService implements OnDestroy {
     }
   }
 
-  // Send the HTTP request with timeout and retry logic
+  // Send the HTTP request via proxy (timeout and retry logic handled by backend)
   private sendRequest(url: string): Observable<any> {
-    return this.http.get(url, {responseType: 'text'}).pipe(
-      timeout(10000), // 10 second timeout
-      retry({
-        count: 2, // Retry up to 2 times (3 total attempts)
-        delay: (error, retryCount) => {
-          // Exponential backoff: 1s, 2s
-          console.log(`Request to ${url} failed, retry attempt ${retryCount}...`);
-          return timer(Math.pow(2, retryCount - 1) * 1000);
-        }
-      }),
+    // Extract path from URL to send to proxy
+    const urlObj = new URL(url);
+    const proxyPath = urlObj.pathname + urlObj.search;
+    const proxyUrl = '/api/ps3' + proxyPath;
+    
+    return this.http.get(proxyUrl, {responseType: 'text'}).pipe(
       catchError(error => {
-        console.error(`Request to ${url} failed after retries:`, error);
+        console.error(`Proxied request to ${url} failed:`, error);
         return throwError(() => error);
       })
     );

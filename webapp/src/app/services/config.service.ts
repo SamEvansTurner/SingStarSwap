@@ -36,24 +36,12 @@ export class ConfigService {
             this.configSubject.next(response as Config);
             this.configLoadedFromServerSubject.next(true);
           },
-        error: (err) => {
-            // Development fallback: When running with `ng serve` without backend server,
-            // use default configuration for local development and testing.
-            // This allows the frontend to be developed independently of the backend.
-            console.warn('Failed to load configuration from server, using development defaults:', err);
-            
-            this.configSubject.next({
-              server: {
-                port: 4200
-              },
-              PS3: {
-                address: "192.168.21.30",
-                ps2path: "/dev_hdd0/SINGSTAR",
-                titlefilter: "SingStar",
-                ps3path: "/net0/PS3ISO"
-              }
-            });
+          error: (err) => {
+            console.error('Failed to load configuration from server:', err);
             this.configLoadedFromServerSubject.next(false);
+            // No fallback - let the app handle missing config appropriately
+            // Development uses proxy.conf.js for mock config
+            // Production failure indicates a critical deployment issue
           }
         }
       )

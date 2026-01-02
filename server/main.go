@@ -179,6 +179,139 @@ func SaveConfig(config *Config) error {
 	return nil
 }
 
+// PS3 Proxy types and globals
+type PS3Request struct {
+	URL          string
+	ResponseChan chan PS3Response
+}
+
+type PS3Response struct {
+	Body  string
+	Error error
+}
+
+var ps3RequestQueue chan *PS3Request
+var queueWorkerStarted sync.Once
+
+// Initialize PS3 proxy queue and worker
+func initPS3Proxy() {
+	ps3RequestQueue = make(chan *PS3Request, 100)
+
+	// Start exactly ONE worker goroutine
+	queueWorkerStarted.Do(func() {
+		go ps3QueueWorker()
+	})
+}
+
+// Single worker goroutine that processes PS3 requests sequentially
+func ps3QueueWorker() {
+	requestID := 0
+	for req := range ps3RequestQueue {
+		requestID++
+		resp := processPS3RequestWithRetry(req.URL)
+		req.ResponseChan <- resp
+	}
+}
+
+// Process a single PS3 request with retry logic
+func processPS3RequestWithRetry(url string) PS3Response {
+	maxRetries := 2
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		resp, err := makeHTTPRequest(url, 10*time.Second)
+		if err == nil {
+			return PS3Response{Body: resp, Error: nil}
+		}
+
+		if attempt < maxRetries {
+			backoff := time.Duration(1<<uint(attempt)) * time.Second // 1s, 2s
+			log.Printf("[PS3 Proxy] Request to %s failed, retry %d after %v", url, attempt+1, backoff)
+			time.Sleep(backoff)
+		}
+	}
+
+	return PS3Response{Error: fmt.Errorf("request failed after %d retries", maxRetries+1)}
+}
+
+// Make HTTP request with timeout
+func makeHTTPRequest(url string, timeout time.Duration) (string, error) {
+	client := &http.Client{Timeout: timeout}
+	resp, err := client.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("HTTP %d: %s", resp.StatusCode, resp.Status)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return string(body), nil
+}
+
+// Validate proxy path to prevent malicious requests
+func validateProxyPath(path string) error {
+	if path == "" || path[0] != '/' {
+		return fmt.Errorf("path must start with /")
+	}
+	if regexp.MustCompile(`\.\.`).MatchString(path) {
+		return fmt.Errorf("path traversal not allowed")
+	}
+	return nil
+}
+
+// PS3 proxy handler - handles /api/ps3/* requests
+func ps3ProxyHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Extract path after /api/ps3
+	ps3Path := r.URL.Path[len("/api/ps3"):]
+
+	// Include query parameters if present
+	if r.URL.RawQuery != "" {
+		ps3Path += "?" + r.URL.RawQuery
+	}
+
+	// Validate path
+	if err := validateProxyPath(ps3Path); err != nil {
+		log.Printf("[PS3 Proxy] Invalid path rejected: %s (%v)", ps3Path, err)
+		http.Error(w, "Invalid path", http.StatusBadRequest)
+		return
+	}
+
+	// Construct full URL using server config
+	fullURL := "http://" + settings.Address + ps3Path
+
+	// Enqueue request
+	responseChan := make(chan PS3Response)
+	ps3RequestQueue <- &PS3Request{
+		URL:          fullURL,
+		ResponseChan: responseChan,
+	}
+
+	// Wait for response (blocks this handler goroutine, but not others)
+	result := <-responseChan
+
+	if result.Error != nil {
+		log.Printf("[PS3 Proxy] Request failed: %v", result.Error)
+		http.Error(w, result.Error.Error(), http.StatusBadGateway)
+		return
+	}
+
+	// Detect and set appropriate content type from response body
+	contentType := http.DetectContentType([]byte(result.Body))
+	w.Header().Set("Content-Type", contentType)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(result.Body))
+}
+
 // API endpoint to get full config
 func getConfig(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
@@ -308,6 +441,10 @@ func main() {
 		panic(err)
 	}
 
+	// Initialize PS3 proxy
+	initPS3Proxy()
+	log.Println("PS3 proxy initialized")
+
 	// Setup routes
 	fileserver := http.FileServer(http.FS(fsys))
 	http.Handle("/", fileserver)
@@ -320,6 +457,7 @@ func main() {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	})
+	http.HandleFunc("/api/ps3/", ps3ProxyHandler)
 
 	// Start the server
 	if err := startServer(settings.Port); err != nil {
