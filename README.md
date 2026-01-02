@@ -420,29 +420,6 @@ When you change the server port through the web interface, the application will 
 - Check file permissions (Linux/macOS: `chmod +x SingStarSwap`)
 - Review console output for error messages
 
-## Known Issues
-
-### PS3 Cover Images Don't Load When Using HTTPS
-
-**Issue**: When accessing SingStarSwap through HTTPS (e.g., behind a reverse proxy with SSL), PS3 game cover images will not display.
-
-**Cause**: 
-- webMAN MOD only supports HTTP (not HTTPS)
-- Browsers block "mixed content" - loading HTTP resources from an HTTPS page
-- This is a browser security feature and cannot be disabled in modern browsers
-
-**Impact**:
-- **PS3 covers**: Will not load (served from webMAN MOD via HTTP)
-- **PS2 covers**: Will load normally (served from GitHub via HTTPS)
-- App functionality is not affected - only PS3 cover image display
-
-**Workarounds**:
-- Access SingStarSwap via HTTP instead of HTTPS when on your local network
-- Configure your reverse proxy to allow HTTP access from local network
-- All other features work normally over HTTPS
-
-**Note**: This is a limitation of webMAN MOD, not SingStarSwap. There is no fix available unless webMAN MOD adds HTTPS support in the future.
-
 ## Development
 
 ### Technology Stack
